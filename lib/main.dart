@@ -1,9 +1,10 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import 'package:path_provider/path_provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:voice_defender/resultPage.dart';
@@ -67,6 +68,78 @@ class _MyHomePageState extends State<MyHomePage> {
             child: pageViewItem[position],
           );
         });
+  }
+
+  String? _filePath;
+  List<String> _files = [];
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['m4a'], // 특정 확장자 필터링
+      withData: true,
+      initialDirectory: "/내장 저장공간/Voice Recorder/", // 원하는 디렉토리 경로 설정
+      allowMultiple: false, // 다중 선택을 허용할 경우 true로 설정
+    );
+    if (result != null) {
+      String? path = result.files.single.path;
+
+      setState(() {
+        _filePath = path;
+      });
+      _uploadFile(path!); // 파일을 선택한 후 바로 업로드
+    } else {
+      // 사용자가 파일 선택을 취소한 경우
+      print('No file selected');
+    }
+  }
+
+  Future<void> _uploadFile(String filePath) async {
+    File file = File(filePath);
+
+    String uploadUrl = 'http://222.105.252.28:8080/api/ai/uploadfile';
+
+    Dio dio = Dio();
+
+    String ext = file.uri.pathSegments.last.split('.').last;
+    String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    FormData formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        file.path,
+        filename: filename,
+      ),
+    });
+
+    Response response = await dio.post(uploadUrl, data: formData);
+
+    if (response.statusCode == 200) {
+      print('File upload successful');
+    } else {
+      print('File upload failed');
+    }
+  }
+
+  Future<void> _getRequest() async {
+    String url = 'http://222.105.252.28:8080/api/ai';
+
+    Dio dio = Dio();
+
+    try {
+      Response response = await dio.get(url);
+      print('Response data: ${response.data}');
+    } catch (e) {
+      print('Request failed with error: $e');
+    }
+  }
+
+  Future<void> _listFiles() async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    List<FileSystemEntity> fileList = dir.listSync();
+    List<String> filePaths = fileList.map((file) => file.path).toList();
+    setState(() {
+      _files = filePaths;
+    });
   }
 
   @override
@@ -148,50 +221,17 @@ class _MyHomePageState extends State<MyHomePage> {
                         onTap: () async {
                           //전송시 동작
 // 파일 선택 다이얼로그 열기
-                          // Directory rootDir =
-                          //     await getApplicationDocumentsDirectory();
-                          // String voiceRecorderDirPath =
-                          //     '${rootDir.path}/Voice Recorder';
-                          // print(voiceRecorderDirPath);
+                          _pickFile();
+
                           // FilePickerResult? result =
                           //     await FilePicker.platform.pickFiles(
                           //   type: FileType.custom,
                           //   allowedExtensions: ['m4a'], // 특정 확장자 필터링
                           //   withData: true,
-                          //   initialDirectory:
-                          //       voiceRecorderDirPath, // 원하는 디렉토리 경로 설정
+                          //   // initialDirectory:
+                          //   //     voiceRecorderDirPath, // 원하는 디렉토리 경로 설정
                           //   allowMultiple: false, // 다중 선택을 허용할 경우 true로 설정
                           // );
-                          // if (result != null) {
-                          //   PlatformFile file = result.files.first;
-
-                          //   // 선택한 파일을 사용하여 작업 수행
-                          //   print('선택한 파일 경로: ${file.path}');
-                          // } else {
-                          //   // 사용자가 파일 선택을 취소한 경우
-                          //   print('파일 선택 취소');
-                          // }
-
-                          FilePickerResult? result =
-                              await FilePicker.platform.pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: ['m4a'], // 특정 확장자 필터링
-                            withData: true,
-                            // initialDirectory:
-                            //     voiceRecorderDirPath, // 원하는 디렉토리 경로 설정
-                            allowMultiple: false, // 다중 선택을 허용할 경우 true로 설정
-                          );
-                          // PlatformFile? uploadedFiles =
-                          //     (await FilePicker.platform.pickFiles(
-                          //   allowedExtensions: ['m4a'],
-                          //   allowMultiple: false,
-                          // ));
-                          //         ?.files;
-                          // setState(() {
-                          //   for (PlatformFile file in uploadedFiles!) {
-                          //     _files.add(file);
-                          //   }
-                          // });
 
                           LoadingController.to.isLoading = true;
                           Future.delayed(Duration(seconds: 3), () {
