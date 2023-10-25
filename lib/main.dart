@@ -70,78 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
-  String? _filePath;
-  List<String> _files = [];
-
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['m4a'], // 특정 확장자 필터링
-      withData: true,
-      initialDirectory: "/내장 저장공간/Voice Recorder/", // 원하는 디렉토리 경로 설정
-      allowMultiple: false, // 다중 선택을 허용할 경우 true로 설정
-    );
-    if (result != null) {
-      String? path = result.files.single.path;
-
-      setState(() {
-        _filePath = path;
-      });
-      _uploadFile(path!); // 파일을 선택한 후 바로 업로드
-    } else {
-      // 사용자가 파일 선택을 취소한 경우
-      print('No file selected');
-    }
-  }
-
-  Future<void> _uploadFile(String filePath) async {
-    File file = File(filePath);
-
-    String uploadUrl = 'http://222.105.252.28:8080/api/ai/uploadfile';
-
-    Dio dio = Dio();
-
-    String ext = file.uri.pathSegments.last.split('.').last;
-    String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
-
-    FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        file.path,
-        filename: filename,
-      ),
-    });
-
-    Response response = await dio.post(uploadUrl, data: formData);
-
-    if (response.statusCode == 200) {
-      print('File upload successful');
-    } else {
-      print('File upload failed');
-    }
-  }
-
-  Future<void> _getRequest() async {
-    String url = 'http://222.105.252.28:8080/api/ai';
-
-    Dio dio = Dio();
-
-    try {
-      Response response = await dio.get(url);
-      print('Response data: ${response.data}');
-    } catch (e) {
-      print('Request failed with error: $e');
-    }
-  }
-
-  Future<void> _listFiles() async {
-    Directory dir = await getApplicationDocumentsDirectory();
-    List<FileSystemEntity> fileList = dir.listSync();
-    List<String> filePaths = fileList.map((file) => file.path).toList();
-    setState(() {
-      _files = filePaths;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     pageViewItem = [pageObject(1), pageObject(2), pageObject(3)];
@@ -221,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         onTap: () async {
                           //전송시 동작
 // 파일 선택 다이얼로그 열기
-                          _pickFile();
+                          // _pickFile();
 
                           // FilePickerResult? result =
                           //     await FilePicker.platform.pickFiles(
