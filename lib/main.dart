@@ -381,6 +381,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String? _filePath;
   List<String> _files = [];
+  String file_name = "파일이 존재하지 않습니다";
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -393,11 +394,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     if (result != null) {
       String? path = result.files.single.path;
+      print(path?.split('/'));
+      List<String>? parts = path?.split('/');
 
+      if (parts != null && parts.isNotEmpty) {
+        file_name = parts.last; // 리스트의 마지막 요소 가져오기
+      }
       setState(() {
         _filePath = path;
       });
-      _uploadFile(path!); // 파일을 선택한 후 바로 업로드
+      // _uploadFile(path!); // 파일을 선택한 후 바로 업로드
     } else {
       // 사용자가 파일 선택을 취소한 경우
       print('No file selected');
@@ -407,26 +413,28 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _uploadFile(String filePath) async {
     File file = File(filePath);
 
-    String uploadUrl = 'http://222.105.252.28:8080/api/ai/uploadfile';
-
+    String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis-test';
+    // String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis';
     Dio dio = Dio();
 
     String ext = file.uri.pathSegments.last.split('.').last;
     String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
 
-    FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        file.path,
-        filename: filename,
-      ),
-    });
+    // FormData formData = FormData.fromMap({
+    //   'file': await MultipartFile.fromFile(
+    //     file.path,
+    //     filename: filename,
+    //   ),
+    // });
 
-    Response response = await dio.post(uploadUrl, data: formData);
+    // Response response = await dio.post(uploadUrl, data: formData);
+    Response response = await dio.post(uploadUrl);
 
     if (response.statusCode == 200) {
       print('File upload successful');
       // LoadingController.to.isLoading = false;
       // Get.to(() => const ResultPage());
+      print(response);
     } else {
       print('File upload failed');
     }
@@ -555,56 +563,127 @@ class _MyHomePageState extends State<MyHomePage> {
                                             )
                                           ],
                                         ),
-                                        Container(
-                                          width: width * 0.6,
-                                          height: height * 0.25,
-                                          decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                          child: Center(
-                                            child: Container(
-                                              width: width * 0.4,
-                                              height: height * 0.15,
-                                              decoration: BoxDecoration(
-                                                  color: Colors.white70,
-                                                  border: Border.all(
-                                                      color: Colors.black54,
-                                                      style:
-                                                          BorderStyle.solid)),
-                                            ),
-                                          ),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment
-                                              .center, // Row 내부의 위젯을 수평 가운데 정렬
-
+                                        Stack(
+                                          alignment: Alignment.bottomCenter,
                                           children: [
                                             Container(
-                                              width: width * 0.3,
-                                              height: height * 0.08,
+                                              width: width * 0.6,
+                                              height: height * 0.25,
                                               decoration: BoxDecoration(
-                                                  color: Colors.blue[100],
-                                                  border: Border.all(),
+                                                  color: Colors.grey[100],
                                                   borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(30))),
-                                              child: TextObject("업로드하기",
-                                                  fontsize: 20),
+                                                      BorderRadius.circular(
+                                                          10)),
+                                              child: Center(
+                                                child: Container(
+                                                  width: width * 0.4,
+                                                  height: height * 0.15,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white70,
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            20.0),
+                                                    child: GestureDetector(
+                                                      onTap: () {
+                                                        _pickFile();
+                                                      },
+                                                      child: Image.asset(
+                                                        'assets/data/voice.png',
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                            Container(
-                                              width: width * 0.3,
-                                              height: height * 0.08,
-                                              decoration: BoxDecoration(
-                                                  color: Colors.blue[100],
-                                                  border: Border.all(),
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(30))),
-                                              child: TextObject("분석하기",
-                                                  fontsize: 20),
-                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: TextObject(file_name,
+                                                  fontsize: 15,
+                                                  fw: FontWeight.w400),
+                                            )
                                           ],
+                                        ),
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 15.0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment
+                                                .center, // Row 내부의 위젯을 수평 가운데 정렬
+
+                                            children: [
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    _pickFile();
+                                                  },
+                                                  child: Container(
+                                                    width: width * 0.3,
+                                                    height: height * 0.08,
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.blue[100],
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(
+                                                                    10))),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceAround,
+                                                      children: [
+                                                        Image.asset(
+                                                          'assets/data/folder.png',
+                                                          width: 30,
+                                                        ),
+                                                        TextObject("업로드하기",
+                                                            fontsize: 15),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    if (_filePath == null) {
+                                                      _pickFile();
+                                                    } else {
+                                                      _uploadFile(_filePath!);
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    width: width * 0.3,
+                                                    height: height * 0.08,
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.blue[100],
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(
+                                                                    10))),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceAround,
+                                                      children: [
+                                                        Image.asset(
+                                                          'assets/data/find.png',
+                                                          width: 30,
+                                                        ),
+                                                        TextObject("분석하기",
+                                                            fontsize: 15),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         )
                                       ]),
                                 ),
