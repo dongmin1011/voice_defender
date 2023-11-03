@@ -528,22 +528,86 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ],
                                 ),
                               ),
-                              // Center(
-                              //   child: Container(
-                              //     width: width * 0.8,
-                              //     height: height * 0.5,
-                              //     decoration: BoxDecoration(
-                              //         border: Border.all(),
-                              //         borderRadius: BorderRadius.all(
-                              //             Radius.circular(30)),
+                              Center(
+                                child: Container(
+                                  width: width * 0.8,
+                                  height: height * 0.5,
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      // border: Border.all(),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(30)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(
+                                              0.2), // 그림자 색상 및 불투명도 설정
+                                          blurRadius: 5, // 그림자의 흐림 정도 설정
+                                          offset: Offset(0, 2), // 그림자의 위치 설정
+                                        ),
+                                      ]),
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .center, // Row 내부의 위젯을 수평 가운데 정렬
 
-                              //             boxShadow:
-                              //             )
+                                          children: [
+                                            TextObject("파일 업로드", fontsize: 25),
+                                            Icon(
+                                              Icons.mic,
+                                              size: 50,
+                                            )
+                                          ],
+                                        ),
+                                        Container(
+                                          width: width * 0.6,
+                                          height: height * 0.25,
+                                          decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                              border: Border.all()),
+                                          child: Container(
+                                            width: width * 0.4,
+                                            height: height * 0.2,
+                                            decoration: BoxDecoration(
+                                                color: Colors.white),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .center, // Row 내부의 위젯을 수평 가운데 정렬
 
-                              // ,
-
-                              // ),
-                              // )
+                                          children: [
+                                            Container(
+                                              width: width * 0.3,
+                                              height: height * 0.08,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.blue[100],
+                                                  border: Border.all(),
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(30))),
+                                              child: TextObject("업로드하기",
+                                                  fontsize: 20),
+                                            ),
+                                            Container(
+                                              width: width * 0.3,
+                                              height: height * 0.08,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.blue[100],
+                                                  border: Border.all(),
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(30))),
+                                              child: TextObject("업로드하기",
+                                                  fontsize: 20),
+                                            ),
+                                          ],
+                                        )
+                                      ]),
+                                ),
+                              )
                             ]))
                       : Container(
                           child: Column(
