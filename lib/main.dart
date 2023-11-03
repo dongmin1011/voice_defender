@@ -105,6 +105,24 @@ class _CallListenerWidgetState extends State<CallListenerWidget> {
     _startListening();
   }
 
+  Future<void> _getDummisData() async {
+    Dio dio = Dio(
+      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+    );
+
+    String url = '/api/ai/analysis-test';
+    Response res = await dio.post(url);
+
+    if (res.statusCode == 200) {
+      print(res.data);
+
+      if (res.data['isVoicePhishing']) {
+        FlutterLocalNotification.showNotification(
+            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
+      }
+    }
+  }
+
   Future<void> _uploadAudioFile() async {
     Directory dir = Directory('/storage/emulated/0/Recordings/Call/');
     List<FileSystemEntity> fileList = await dir.list().toList();
@@ -117,11 +135,10 @@ class _CallListenerWidgetState extends State<CallListenerWidget> {
 
     String? latestFilePath = fileList.first.path;
     Dio dio = Dio(
-      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
-      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
     );
 
-    String url = '/api/ai/upload-test';
+    String url = '/api/ai/analysis';
     String ext = latestFilePath.split('.').last;
     String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
 
@@ -507,6 +524,25 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 Widget pageObject(int index) {
+  Future<void> _getDummisData() async {
+    Dio dio = Dio(
+      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+    );
+
+    String url = '/api/ai/analysis-test';
+    Response res = await dio.post(url);
+
+    if (res.statusCode == 200) {
+      print(res.data);
+
+      if (res.data['isVoicePhishing'] == true) {
+        FlutterLocalNotification.showNotification(
+            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
+      }
+    }
+  }
+
   return Padding(
     padding: const EdgeInsets.only(bottom: 12, left: 10, right: 10, top: 10),
     child: Container(
@@ -529,6 +565,10 @@ Widget pageObject(int index) {
               ? Column(
                   // crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                      ElevatedButton(
+                        child: const Text("더미 데이터 요청"),
+                        onPressed: _getDummisData,
+                      ),
                       Text(
                         "애플리케이션 설명",
                       ),
