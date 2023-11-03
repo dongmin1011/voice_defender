@@ -560,12 +560,19 @@ class _MyHomePageState extends State<MyHomePage> {
                                           height: height * 0.25,
                                           decoration: BoxDecoration(
                                               color: Colors.grey[200],
-                                              border: Border.all()),
-                                          child: Container(
-                                            width: width * 0.4,
-                                            height: height * 0.2,
-                                            decoration: BoxDecoration(
-                                                color: Colors.white),
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          child: Center(
+                                            child: Container(
+                                              width: width * 0.4,
+                                              height: height * 0.15,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white70,
+                                                  border: Border.all(
+                                                      color: Colors.black54,
+                                                      style:
+                                                          BorderStyle.solid)),
+                                            ),
                                           ),
                                         ),
                                         Row(
@@ -594,7 +601,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   borderRadius:
                                                       BorderRadius.all(
                                                           Radius.circular(30))),
-                                              child: TextObject("업로드하기",
+                                              child: TextObject("분석하기",
                                                   fontsize: 20),
                                             ),
                                           ],
