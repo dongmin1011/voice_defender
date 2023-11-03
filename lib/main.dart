@@ -10,13 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:voice_defender/basicObject.dart';
 import 'package:voice_defender/resultPage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +19,20 @@ import 'package:dio/dio.dart';
 import 'package:voice_defender/uploadPage/uploading.dart';
 
 import 'loadingWidget.dart';
+import 'notification.dart';
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeService();
+
+  FlutterLocalNotification.init();
+
+  Future.delayed(const Duration(seconds: 3),
+      FlutterLocalNotification.requestNotificationPermission());
+
 import 'notification.dart';
 import 'dart:async';
 import 'dart:io';
@@ -271,10 +278,17 @@ class _MyHomePageState extends State<MyHomePage> {
   static const platform = MethodChannel('com.example.voice_defender/call');
   String _callStatus = 'Unknown';
 
+  static const platform = MethodChannel('com.example.voice_defender/call');
+  String _callStatus = 'Unknown';
+
   @override
   void initState() {
     //page컨트롤러 초기화
     super.initState();
+
+    _requestPermission();
+    _startListening();
+
 
     _requestPermission();
     _startListening();
@@ -286,6 +300,89 @@ class _MyHomePageState extends State<MyHomePage> {
         currentPageValue = _controller.page;
       });
     });
+  }
+
+  Future<void> _requestPermission() async {
+    await Permission.phone.request();
+    await Permission.audio.request();
+    await Permission.notification.request();
+  }
+
+  Future<void> _uploadAudioFile() async {
+    Directory dir = Directory('/storage/emulated/0/Recordings/Call/');
+    List<FileSystemEntity> fileList = await dir.list().toList();
+
+    if (fileList.isNotEmpty) {
+      fileList.sort((a, b) => File(b.path)
+          .statSync()
+          .modified
+          .compareTo(File(a.path).statSync().modified));
+    }
+
+    String? latestFilePath = fileList.first.path;
+    Dio dio = Dio(
+      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+    );
+
+    String url = '/api/ai/analysis';
+    // String url = '/api/ai/analysis-test'; //get dummis data url
+    String ext = latestFilePath.split('.').last;
+    String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    FormData formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        latestFilePath,
+        filename: filename,
+      ),
+    });
+
+    Response res = await dio.post(url, data: formData);
+
+    if (res.statusCode == 200) {
+      print('File upload successful');
+      print(res.data);
+
+      print('isDeepVoice >> ' + res.data['isDeepVoice'].toString());
+      print('isDeepVoice >> ' + res.data['isVoicePhishing'].toString());
+
+      if (res.data['isVoicePhishing'] == true) {
+        print('피싱 의심!!');
+        FlutterLocalNotification.showNotification(
+            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
+      }
+    } else
+      print('File upload failed');
+  }
+
+  Future<void> _startListening() async {
+    platform.setMethodCallHandler((MethodCall call) async {
+      switch (call.method) {
+        case 'onCallEnded':
+          print('[Main] >>>>>>>>>>>>>>>>>>>>>>>>> END <<<');
+          if (_callStatus == 'Call Started') {
+            print('[Main] >>>>>>>>>>>>> Upload <<<<<<<<<<<<');
+            _uploadAudioFile();
+          }
+          setState(() {
+            _callStatus = 'Call Ended';
+          });
+          break;
+        case 'onCallStarted':
+          print('[Main] >>> Start <<<<<<<<<<<<<<<<<<<<<<<');
+          setState(() {
+            _callStatus = 'Call Started';
+          });
+          break;
+        default:
+          throw MissingPluginException('notImplemented');
+      }
+    });
+
+    try {
+      await platform.invokeMethod('startListening');
+    } on PlatformException catch (e) {
+      print('Failed to start listening: ${e.message}');
+    }
   }
 
   Future<void> _requestPermission() async {
