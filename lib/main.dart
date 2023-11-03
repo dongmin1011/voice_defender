@@ -526,8 +526,8 @@ class _MyHomePageState extends State<MyHomePage> {
 Widget pageObject(int index) {
   Future<void> _getDummisData() async {
     Dio dio = Dio(
-      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
-      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+      // BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
     );
 
     String url = '/api/ai/analysis-test';
