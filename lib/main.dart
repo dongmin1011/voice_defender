@@ -1,28 +1,26 @@
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'dart:io';
-
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile, Response;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:voice_defender/basicObject.dart';
 import 'package:voice_defender/resultPage.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:voice_defender/uploadPage/uploading.dart';
-
+import 'package:dio/dio.dart';
 import 'loadingWidget.dart';
 import 'notification.dart';
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 Future<void> main() async {
@@ -109,6 +107,24 @@ class _CallListenerWidgetState extends State<CallListenerWidget> {
     _startListening();
   }
 
+  Future<void> _getDummisData() async {
+    Dio dio = Dio(
+      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+    );
+
+    String url = '/api/ai/analysis-test';
+    Response res = await dio.post(url);
+
+    if (res.statusCode == 200) {
+      print(res.data);
+
+      if (res.data['isVoicePhishing']) {
+        FlutterLocalNotification.showNotification(
+            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
+      }
+    }
+  }
+
   Future<void> _uploadAudioFile() async {
     Directory dir = Directory('/storage/emulated/0/Recordings/Call/');
     List<FileSystemEntity> fileList = await dir.list().toList();
@@ -121,11 +137,10 @@ class _CallListenerWidgetState extends State<CallListenerWidget> {
 
     String? latestFilePath = fileList.first.path;
     Dio dio = Dio(
-      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
-      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
     );
 
-    String url = '/api/ai/upload-test';
+    String url = '/api/ai/analysis';
     String ext = latestFilePath.split('.').last;
     String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
 
@@ -864,6 +879,25 @@ class MainPage extends StatelessWidget {
 }
 
 Widget pageObject(int index) {
+  Future<void> _getDummisData() async {
+    Dio dio = Dio(
+      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+      // BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+    );
+
+    String url = '/api/ai/analysis-test';
+    Response res = await dio.post(url);
+
+    if (res.statusCode == 200) {
+      print(res.data);
+
+      if (res.data['isVoicePhishing'] == true) {
+        FlutterLocalNotification.showNotification(
+            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
+      }
+    }
+  }
+
   return Padding(
     padding: const EdgeInsets.only(bottom: 12, left: 10, right: 10, top: 10),
     child: Container(
@@ -886,6 +920,10 @@ Widget pageObject(int index) {
               ? Column(
                   // crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                      ElevatedButton(
+                        child: const Text("더미 데이터 요청"),
+                        onPressed: _getDummisData,
+                      ),
                       Text(
                         "애플리케이션 설명",
                       ),
