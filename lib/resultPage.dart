@@ -50,31 +50,74 @@ class ResultPage extends StatelessWidget {
 
                   // title: Text("인식결과"),
                   // titlePadding: EdgeInsets.only(bottom: 10),
-                  stretchModes: <StretchMode>[
-                    StretchMode.zoomBackground,
-                    StretchMode.blurBackground,
-                    StretchMode.fadeTitle,
-                  ],
+                  // stretchModes: <StretchMode>[
+                  //   StretchMode.zoomBackground,
+                  //   StretchMode.blurBackground,
+                  //   StretchMode.fadeTitle,
+                  // ],
                   // centerTitle: true,
                   background: Container(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 50),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [Text("인식결과"), Text("위험")],
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      // color: Colors.black,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(30),
-                        bottomRight: Radius.circular(30),
-                      ),
-                      // border: Border.all(),
-                      color: Colors.pinkAccent,
-                    ),
-                    // child: Column(children: [Text("안녕")]),
-                  )),
+                decoration: const BoxDecoration(
+                  // color: Colors.black,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
+                  // border: Border.all(),
+                  color: Colors.pinkAccent,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("인식결과",
+                          style: TextStyle(
+                            fontSize: 32, // 글꼴 크기 조정
+                            fontWeight: FontWeight.bold, // 글꼴 두께 조정
+                            fontStyle: FontStyle.normal, // 글꼴 스타일 조정
+                            color: Colors.black, // 글꼴 색상 설정
+                          )),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 30.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              width: width * 0.7,
+                              height: height * 0.05,
+                              decoration: const BoxDecoration(
+                                  color: Colors.white60,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30))),
+                            ),
+                            Column(
+                              children: [
+                                Text("위험",
+                                    style: TextStyle(
+                                      fontSize: 32, // 글꼴 크기 조정
+                                      fontWeight: FontWeight.bold, // 글꼴 두께 조정
+                                      fontStyle: FontStyle.normal, // 글꼴 스타일 조정
+                                      color: Colors.black, // 글꼴 색상 설정
+                                    )),
+                                Text("89%",
+                                    style: TextStyle(
+                                      fontSize: 32, // 글꼴 크기 조정
+                                      fontWeight: FontWeight.bold, // 글꼴 두께 조정
+                                      fontStyle: FontStyle.normal, // 글꼴 스타일 조정
+                                      color: Colors.black, // 글꼴 색상 설정
+                                    )),
+                              ],
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                // child: Column(children: [Text("안녕")]),
+              )),
 
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(30),
