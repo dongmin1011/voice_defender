@@ -31,6 +31,14 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeService();
 
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool autoSendSwitchValue = prefs.getBool('autoSendSwitchValue') ?? true;
+  bool notificationSwitchValue =
+      prefs.getBool('notificationSwitchValue') ?? true;
+
+  await prefs.setBool('autoSendSwitchValue', autoSendSwitchValue);
+  await prefs.setBool('notificationSwitchValue', notificationSwitchValue);
+
   FlutterLocalNotification.init();
 
   Future.delayed(const Duration(seconds: 3),
@@ -68,150 +76,20 @@ Future<void> initializeService() async {
 
   await service.configure(
     androidConfiguration: AndroidConfiguration(
-      // this will be executed when app is in foreground or background in separated isolate
       onStart: onStart,
-
-      // auto start service
       autoStart: true,
       isForegroundMode: true,
-
       notificationChannelId: 'my_foreground',
-      initialNotificationTitle: 'AWESOME SERVICE',
-      initialNotificationContent: 'Initializing',
+      initialNotificationTitle: '후아유 실행중',
+      initialNotificationContent: '안심하고 통화하세요!',
       foregroundServiceNotificationId: 888,
     ),
     iosConfiguration: IosConfiguration(
-      // auto start service
       autoStart: true,
-
-      // this will be executed when app is in foreground in separated isolate
       onForeground: onStart,
-
-      // you have to enable background fetch capability on xcode project
       onBackground: onIosBackground,
     ),
   );
-}
-
-class CallListenerWidget extends StatefulWidget {
-  @override
-  _CallListenerWidgetState createState() => _CallListenerWidgetState();
-}
-
-class _CallListenerWidgetState extends State<CallListenerWidget> {
-  static const platform = MethodChannel('com.example.voice_defender/call');
-  bool _duringCall = false;
-
-  @override
-  void initState() async {
-    super.initState();
-
-    _requestPermission();
-
-    _startListening();
-  }
-
-  Future<void> _getDummisData() async {
-    Dio dio = Dio(
-      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
-    );
-
-    String url = '/api/ai/analysis-test';
-    Response res = await dio.post(url);
-
-    if (res.statusCode == 200) {
-      print(res.data);
-
-      if (res.data['isVoicePhishing']) {
-        FlutterLocalNotification.showNotification(
-            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
-      }
-    }
-  }
-
-  Future<void> _uploadAudioFile() async {
-    Directory dir = Directory('/storage/emulated/0/Recordings/Call/');
-    List<FileSystemEntity> fileList = await dir.list().toList();
-    if (fileList.isNotEmpty) {
-      fileList.sort((a, b) => File(b.path)
-          .statSync()
-          .modified
-          .compareTo(File(a.path).statSync().modified));
-    }
-
-    String? latestFilePath = fileList.first.path;
-    Dio dio = Dio(
-      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
-    );
-
-    String url = '/api/ai/analysis';
-    String ext = latestFilePath.split('.').last;
-    String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
-
-    FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        latestFilePath,
-        filename: filename,
-      ),
-    });
-
-    Response res = await dio.post(url, data: formData);
-
-    if (res.statusCode == 200) {
-      print('File upload successful');
-      print(res.data);
-
-      print('isDeepVoice >> ' + res.data['isDeepVoice'].toString());
-      print('isDeepVoice >> ' + res.data['isVoicePhishing'].toString());
-
-      if (res.data['isVoicePhishing'] == true) {
-        print('피싱 의심!!');
-        FlutterLocalNotification.showNotification(
-            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
-      }
-    } else
-      print('File upload failed');
-  }
-
-  Future<void> _requestPermission() async {
-    await Permission.phone.request();
-  }
-
-  Future<void> _startListening() async {
-    platform.setMethodCallHandler((MethodCall call) async {
-      switch (call.method) {
-        case 'onCallEnded':
-          print('>>>>>>>>>>>>>>>>>>>>>>>>> END <<<');
-          if (_duringCall) {
-            print('>>>>>>>>>>>> Upload <<<<<<<<<<<');
-            _uploadAudioFile();
-          }
-          setState(() {
-            _duringCall = false;
-          });
-          break;
-        case 'onCallStarted':
-          print('>>> Start <<<<<<<<<<<<<<<<<<<<<<<');
-          setState(() {
-            _duringCall = true;
-          });
-          break;
-        default:
-          throw MissingPluginException('notImplemented');
-      }
-    });
-
-    try {
-      await platform.invokeMethod('startListening');
-    } on PlatformException catch (e) {
-      print('Failed to start listening: ${e.message}');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 
 @pragma('vm:entry-point')
@@ -232,8 +110,6 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   SharedPreferences preferences = await SharedPreferences.getInstance();
-
-  runApp(CallListenerWidget());
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -256,7 +132,6 @@ void onStart(ServiceInstance service) async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -279,19 +154,21 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late List pageViewItem;
   late PageController _controller;
+  late bool autoSendSwitchValue;
+  late bool notificationSwitchValue;
   static dynamic currentPageValue = 0.0;
 
   static const platform = MethodChannel('com.example.voice_defender/call');
   String _callStatus = 'Unknown';
 
-  bool autoSendSwitchValue = false;
-  bool notificationSwitchValue = false;
+  // bool autoSendSwitchValue = true;
+  // bool notificationSwitchValue = true;
 
   @override
   void initState() {
     //page컨트롤러 초기화
     super.initState();
-
+    _loadSwitchValues();
     _requestPermission();
     _startListening();
 
@@ -301,6 +178,16 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         currentPageValue = _controller.page;
       });
+    });
+  }
+
+  void _loadSwitchValues() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      autoSendSwitchValue = prefs.getBool('autoSendSwitchValue') ?? true;
+      notificationSwitchValue =
+          prefs.getBool('notificationSwitchValue') ?? true;
     });
   }
 
@@ -323,13 +210,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
     String? latestFilePath = fileList.first.path;
     Dio dio = Dio(
-      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
     );
 
     String url = '/api/ai/analysis';
-    // String url = '/api/ai/analysis-test'; //get dummis data url
-    String ext = latestFilePath.split('.').last;
-    String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
+    String filename = latestFilePath.split('/').last;
 
     FormData formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(
@@ -341,19 +227,30 @@ class _MyHomePageState extends State<MyHomePage> {
     Response res = await dio.post(url, data: formData);
 
     if (res.statusCode == 200) {
-      print('File upload successful');
-      print(res.data);
+      print('[Main] data >> ${res.data}');
 
-      print('isDeepVoice >> ' + res.data['isDeepVoice'].toString());
-      print('isDeepVoice >> ' + res.data['isVoicePhishing'].toString());
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      if (res.data['isVoicePhishing'] == true) {
-        print('피싱 의심!!');
+      bool notificationSwitchValue =
+          prefs.getBool('notificationSwitchValue') ?? true;
+
+      if (res.data['phising_result']['is_phising']) {
+        print('[Main] 보이스피싱 의심');
         FlutterLocalNotification.showNotification(
-            '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
+            '보이스피싱', '방금 통화는 보이스 피싱으로 의심됩니다.');
+      } else if (res.data['phising_result']['deep_voice_result']
+          ['is_deep_voice']) {
+        print('[Main] 딥보이스 탐지');
+        FlutterLocalNotification.showNotification(
+            '딥보이스', '방금 통화는 딥보이스가 탐지되었습니다.');
+      } else {
+        print('[Main] 정상통화');
+        if (!notificationSwitchValue) {
+          FlutterLocalNotification.showNotification(
+              '후아유', '안심하세요. 아무것도 탐지되지 않았습니다.');
+        }
       }
-    } else
-      print('File upload failed');
+    }
   }
 
   Future<void> _startListening() async {
@@ -363,7 +260,15 @@ class _MyHomePageState extends State<MyHomePage> {
           print('[Main] >>>>>>>>>>>>>>>>>>>>>>>>> END <<<');
           if (_callStatus == 'Call Started') {
             print('[Main] >>>>>>>>>>>>> Upload <<<<<<<<<<<<');
-            _uploadAudioFile();
+
+            final SharedPreferences prefs =
+                await SharedPreferences.getInstance();
+
+            bool autoSendSwitchValue =
+                prefs.getBool('autoSendSwitchValue') ?? true;
+            if (autoSendSwitchValue) {
+              _uploadAudioFile();
+            }
           }
           setState(() {
             _callStatus = 'Call Ended';
@@ -439,16 +344,17 @@ class _MyHomePageState extends State<MyHomePage> {
     String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis';
     Dio dio = Dio();
 
-    String ext = file.uri.pathSegments.last.split('.').last;
-    String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
-    print(ext);
-    print(filename);
+    // String ext = file.uri.pathSegments.last.split('.').last;
+    // String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
+    // print(ext);
+    // print(filename);
+
+    String filename = file.uri.pathSegments.last.split('/').last;
 
     FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        file.path,
-        filename: filename + ".m4a",
-      ),
+      'file': await MultipartFile.fromFile(file.path, filename: filename
+          // filename: filename + ".m4a",
+          ),
     });
 
     Response response = await dio.post(uploadUrl, data: formData);
@@ -576,19 +482,38 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   MainAxisAlignment
                                                       .spaceBetween,
                                               children: [
-                                                TextObject("자동분석기능",
+                                                TextObject("통화 종료 후 자동 분석",
                                                     fontsize: 20,
                                                     fw: FontWeight.w400),
                                                 CupertinoSwitch(
-                                                    value: autoSendSwitchValue,
-                                                    activeColor: CupertinoColors
-                                                        .activeGreen,
-                                                    onChanged: (bool? Value) {
-                                                      setState(() {
-                                                        autoSendSwitchValue =
-                                                            Value ?? false;
-                                                      });
-                                                    })
+                                                  value: autoSendSwitchValue,
+                                                  activeColor: CupertinoColors
+                                                      .activeGreen,
+                                                  onChanged:
+                                                      (bool? value) async {
+                                                    final SharedPreferences
+                                                        prefs =
+                                                        await SharedPreferences
+                                                            .getInstance();
+                                                    setState(() {
+                                                      autoSendSwitchValue =
+                                                          value ?? false;
+                                                    });
+                                                    await prefs.setBool(
+                                                        'autoSendSwitchValue',
+                                                        autoSendSwitchValue);
+                                                  },
+                                                )
+                                                // CupertinoSwitch(
+                                                //     value: autoSendSwitchValue,
+                                                //     activeColor: CupertinoColors
+                                                //         .activeGreen,
+                                                //     onChanged: (bool? Value) {
+                                                //       setState(() {
+                                                //         autoSendSwitchValue =
+                                                //             Value ?? false;
+                                                //       });
+                                                //     })
                                               ],
                                             ),
                                           ),
@@ -609,7 +534,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   MainAxisAlignment
                                                       .spaceBetween,
                                               children: [
-                                                TextObject("알림 기능",
+                                                TextObject("보이스피싱 의심될 때만 알림",
                                                     fontsize: 20,
                                                     fw: FontWeight.w400),
                                                 CupertinoSwitch(
@@ -617,11 +542,19 @@ class _MyHomePageState extends State<MyHomePage> {
                                                         notificationSwitchValue,
                                                     activeColor: CupertinoColors
                                                         .activeGreen,
-                                                    onChanged: (bool? Value) {
+                                                    onChanged:
+                                                        (bool? Value) async {
+                                                      final SharedPreferences
+                                                          prefs =
+                                                          await SharedPreferences
+                                                              .getInstance();
                                                       setState(() {
                                                         notificationSwitchValue =
                                                             Value ?? false;
                                                       });
+                                                      await prefs.setBool(
+                                                          'notificationSwitchValue',
+                                                          notificationSwitchValue);
                                                     })
                                               ],
                                             ),
@@ -1050,8 +983,8 @@ class _MyHomePageState extends State<MyHomePage> {
 Widget pageObject(int index) {
   Future<void> _getDummisData() async {
     Dio dio = Dio(
-      BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
-      // BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
     );
 
     String url = '/api/ai/analysis-test';
@@ -1060,7 +993,7 @@ Widget pageObject(int index) {
     if (res.statusCode == 200) {
       print(res.data);
 
-      if (res.data['isVoicePhishing'] == true) {
+      if (res.data['is_phising'] == true) {
         FlutterLocalNotification.showNotification(
             '위험', '방금 통화는 보이스 피싱으로 의심됩니다...');
       }
