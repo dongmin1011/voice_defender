@@ -23,7 +23,9 @@ dependencies:
   dio: ^5.3.3
   get: ^4.6.5
   curved_navigation_bar: ^1.0.3
-
+  lottie: ^2.7.0
+  flutter_slidable: ^3.0.1
+  
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -40,6 +42,7 @@ flutter:
     - .env
   
     - assets/data/
+    - assets/lottie/
     
     
 

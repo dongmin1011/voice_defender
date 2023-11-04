@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -280,6 +284,9 @@ class _MyHomePageState extends State<MyHomePage> {
   static const platform = MethodChannel('com.example.voice_defender/call');
   String _callStatus = 'Unknown';
 
+  bool autoSendSwitchValue = false;
+  bool notificationSwitchValue = false;
+
   @override
   void initState() {
     //page컨트롤러 초기화
@@ -427,29 +434,35 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _uploadFile(String filePath) async {
     File file = File(filePath);
-
-    String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis-test';
-    // String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis';
+    LoadingController.to.isLoading = true;
+    // String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis-test';
+    String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis';
     Dio dio = Dio();
 
     String ext = file.uri.pathSegments.last.split('.').last;
     String filename = '${DateTime.now().millisecondsSinceEpoch}.$ext';
+    print(ext);
+    print(filename);
 
-    // FormData formData = FormData.fromMap({
-    //   'file': await MultipartFile.fromFile(
-    //     file.path,
-    //     filename: filename,
-    //   ),
-    // });
+    FormData formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        file.path,
+        filename: filename + ".m4a",
+      ),
+    });
 
-    // Response response = await dio.post(uploadUrl, data: formData);
-    Response response = await dio.post(uploadUrl);
+    Response response = await dio.post(uploadUrl, data: formData);
+    // var response = await dio.post(uploadUrl);
 
     if (response.statusCode == 200) {
       print('File upload successful');
-      // LoadingController.to.isLoading = false;
-      // Get.to(() => const ResultPage());
+      LoadingController.to.isLoading = false;
+
       print(response);
+      // print(response.runtimeType);
+      Get.to(() => ResultPage(
+            response: response.data,
+          ));
     } else {
       print('File upload failed');
     }
@@ -487,402 +500,550 @@ class _MyHomePageState extends State<MyHomePage> {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false, // 앱 상단에 "Debug" 라벨 숨기기
 
-      home: Scaffold(
-          // extendBodyBehindAppBar: true, //영역을 확장하여 적용
-          // backgroundColor: Colors.grey[200],
-          appBar: AppBar(
-            iconTheme: const IconThemeData(color: Colors.black54, size: 25),
+      home: Stack(
+        children: [
+          Scaffold(
+              // extendBodyBehindAppBar: true, //영역을 확장하여 적용
+              // backgroundColor: Colors.grey[200],
+              appBar: AppBar(
+                iconTheme: const IconThemeData(color: Colors.black54, size: 25),
 
-            title: Image.asset(
-              "assets/data/logo.png",
-              width: 200,
-            ),
-            toolbarHeight: 150,
-            centerTitle: true,
-            elevation: 0,
-            // shape: RoundedRectangleBorder(
-            //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(25))),
-            backgroundColor: Colors.transparent,
-          ),
-          bottomNavigationBar: CurvedNavigationBar(
-              backgroundColor: Colors.white,
-              color: Colors.blueAccent.shade200,
-              animationDuration: const Duration(milliseconds: 300),
-              animationCurve: Curves.decelerate,
-              onTap: (value) {
-                setState(() {
-                  index = value;
-                });
-              },
-              items: [Icon(Icons.home), Icon(Icons.add), Icon(Icons.settings)]),
-          // drawer: Container(),
-          body: Container(
-              // color: Colors.grey[200],
-              child: index == 0
-                  ? MainPage(width: width, height: height)
-                  : index == 1
-                      ? Container(
-                          child: Column(
-                              // mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 20.0, bottom: 30),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 8.0),
-                                      child: TextObject("음성 파일 업로드",
-                                          center: false),
+                title: Image.asset(
+                  "assets/data/logo.png",
+                  width: 200,
+                ),
+                toolbarHeight: 150,
+                centerTitle: true,
+                elevation: 0,
+                // shape: RoundedRectangleBorder(
+                //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(25))),
+                backgroundColor: Colors.transparent,
+              ),
+              bottomNavigationBar: CurvedNavigationBar(
+                  backgroundColor: Colors.white,
+                  color: Colors.blue.shade400,
+                  animationDuration: const Duration(milliseconds: 300),
+                  animationCurve: Curves.decelerate,
+                  onTap: (value) {
+                    setState(() {
+                      index = value;
+                    });
+                  },
+                  items: [
+                    Icon(
+                      Icons.home,
+                      color: Colors.white,
+                    ),
+                    Icon(Icons.add, color: Colors.white),
+                    Icon(Icons.settings, color: Colors.white)
+                  ]),
+              // drawer: Container(),
+              body: Container(
+                  // color: Colors.grey[200],
+                  child: index == 0
+                      ? MainPage(width, height)
+                      : index == 1
+                          ? UploadPage(width, height)
+                          : Container(
+                              child: Column(
+                                // mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 20.0, bottom: 20),
+                                    child: TextObject("환경 설정", center: false),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 20.0, bottom: 10),
+                                    child: TextObject("전송 기능", fontsize: 20),
+                                  ),
+                                  Center(
+                                    child: Column(children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          width: width * 0.9,
+                                          decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                              borderRadius:
+                                                  BorderRadius.circular(20)),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                TextObject("자동분석기능",
+                                                    fontsize: 20,
+                                                    fw: FontWeight.w400),
+                                                CupertinoSwitch(
+                                                    value: autoSendSwitchValue,
+                                                    activeColor: CupertinoColors
+                                                        .activeGreen,
+                                                    onChanged: (bool? Value) {
+                                                      setState(() {
+                                                        autoSendSwitchValue =
+                                                            Value ?? false;
+                                                      });
+                                                    })
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          width: width * 0.9,
+                                          decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                              borderRadius:
+                                                  BorderRadius.circular(20)),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                TextObject("알림 기능",
+                                                    fontsize: 20,
+                                                    fw: FontWeight.w400),
+                                                CupertinoSwitch(
+                                                    value:
+                                                        notificationSwitchValue,
+                                                    activeColor: CupertinoColors
+                                                        .activeGreen,
+                                                    onChanged: (bool? Value) {
+                                                      setState(() {
+                                                        notificationSwitchValue =
+                                                            Value ?? false;
+                                                      });
+                                                    })
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 20, horizontal: 20),
+                                        child: Divider(
+                                          thickness: 2,
+                                          height: 2,
+                                        ),
+                                      ),
+                                    ]),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 20.0, bottom: 10),
+                                    child:
+                                        TextObject("개인정보 처리방침", fontsize: 20),
+                                  ),
+                                  Center(
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Container(
+                                            width: width * 0.9,
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0,
+                                                      vertical: 15),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  TextObject("개인정보 처리방침",
+                                                      fontsize: 20,
+                                                      fw: FontWeight.w400),
+                                                  Row(
+                                                    children: [
+                                                      TextObject("상세보기",
+                                                          fontsize: 15,
+                                                          fw: FontWeight.w200),
+                                                      Icon(
+                                                        Icons
+                                                            .arrow_forward_ios_rounded,
+                                                        color: Colors.grey[400],
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Container(
+                                            width: width * 0.9,
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0,
+                                                      vertical: 15),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  TextObject("정책",
+                                                      fontsize: 20,
+                                                      fw: FontWeight.w400),
+                                                  Row(
+                                                    children: [
+                                                      TextObject("상세보기",
+                                                          fontsize: 15,
+                                                          fw: FontWeight.w200),
+                                                      Icon(
+                                                        Icons
+                                                            .arrow_forward_ios_rounded,
+                                                        color: Colors.grey[400],
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Container(
+                                            width: width * 0.9,
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0,
+                                                      vertical: 15),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  TextObject("이용약관",
+                                                      fontsize: 20,
+                                                      fw: FontWeight.w400),
+                                                  Row(
+                                                    children: [
+                                                      TextObject("상세보기",
+                                                          fontsize: 15,
+                                                          fw: FontWeight.w200),
+                                                      Icon(
+                                                        Icons
+                                                            .arrow_forward_ios_rounded,
+                                                        color: Colors.grey[400],
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    TextObject("검사를 원하는 음성파일을 업로드 해주세요",
-                                        center: false,
-                                        fontsize: 15,
-                                        fw: FontWeight.w400)
+                                  ),
+                                ],
+                              ),
+                            ))),
+          LoadingWidget(),
+        ],
+      ),
+    );
+  }
+
+  Container UploadPage(double width, double height) {
+    return Container(
+        child: Column(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(left: 20.0, bottom: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: TextObject("음성 파일 업로드", center: false),
+                ),
+                TextObject("검사를 원하는 음성파일을 업로드 해주세요",
+                    center: false, fontsize: 15, fw: FontWeight.w400)
+              ],
+            ),
+          ),
+          Center(
+            child: Container(
+              width: width * 0.8,
+              height: height * 0.5,
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  // border: Border.all(),
+                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // 그림자 색상 및 불투명도 설정
+                      blurRadius: 5, // 그림자의 흐림 정도 설정
+                      offset: Offset(0, 2), // 그림자의 위치 설정
+                    ),
+                  ]),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.center, // Row 내부의 위젯을 수평 가운데 정렬
+
+                      children: [
+                        TextObject("파일 업로드", fontsize: 25),
+                        Icon(
+                          Icons.mic,
+                          size: 50,
+                        )
+                      ],
+                    ),
+                    Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Container(
+                          width: width * 0.6,
+                          height: height * 0.25,
+                          decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Center(
+                            child: Container(
+                              width: width * 0.4,
+                              height: height * 0.15,
+                              decoration: BoxDecoration(
+                                color: Colors.white70,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _pickFile();
+                                  },
+                                  child: Image.asset(
+                                    'assets/data/voice.png',
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextObject(file_name,
+                              fontsize: 15, fw: FontWeight.w400),
+                        )
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 15.0),
+                      child: Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.center, // Row 내부의 위젯을 수평 가운데 정렬
+
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                _pickFile();
+                              },
+                              child: Container(
+                                width: width * 0.3,
+                                height: height * 0.08,
+                                decoration: BoxDecoration(
+                                    color: Colors.blue[100],
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Image.asset(
+                                      'assets/data/folder.png',
+                                      width: 30,
+                                    ),
+                                    TextObject("업로드하기", fontsize: 15),
                                   ],
                                 ),
                               ),
-                              Center(
-                                child: Container(
-                                  width: width * 0.8,
-                                  height: height * 0.5,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                if (_filePath == null) {
+                                  _pickFile();
+                                } else {
+                                  _uploadFile(_filePath!);
+                                }
+                              },
+                              child: Container(
+                                width: width * 0.3,
+                                height: height * 0.08,
+                                decoration: BoxDecoration(
+                                    color: Colors.blue[100],
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Image.asset(
+                                      'assets/data/find.png',
+                                      width: 30,
+                                    ),
+                                    TextObject("분석하기", fontsize: 15),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ]),
+            ),
+          )
+        ]));
+  }
+
+  final items = List<String>.generate(30, (i) => "Item ${i + 1}");
+  void _onDismissed(int index) {
+    final item = items[index];
+    setState(() => items.removeAt(index));
+  }
+
+  Column MainPage(double width, double height) {
+    return Column(
+        // mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(left: 20.0, bottom: 30),
+            child: TextObject("최근 분석 결과", center: false),
+          ),
+          Center(
+              child: Container(
+                  width: width * 0.9,
+                  height: height * 0.5,
+                  // decoration: BoxDecoration(border: Border.all()),
+                  child: SlidableAutoCloseBehavior(
+                    closeWhenOpened: true,
+                    child: ListView.builder(
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 7.0),
+                            child: Slidable(
+                              key: Key(item),
+                              endActionPane: ActionPane(
+                                motion: const StretchMotion(),
+                                dismissible: DismissiblePane(
+                                  onDismissed: () {
+                                    _onDismissed(index);
+                                    // index -= 1;
+                                  },
+                                ),
+                                children: [
+                                  SlidableAction(
+                                    backgroundColor: Colors.red,
+                                    icon: Icons.delete,
+                                    label: 'delete',
+                                    onPressed: (context) => _onDismissed(
+                                      index,
+                                    ),
+                                  )
+                                ],
+                              ),
+                              child: Container(
+                                  // width: width * 0.7,
+                                  padding: EdgeInsets.all(10),
+                                  height: 90,
                                   decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      // border: Border.all(),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(30)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(
-                                              0.2), // 그림자 색상 및 불투명도 설정
-                                          blurRadius: 5, // 그림자의 흐림 정도 설정
-                                          offset: Offset(0, 2), // 그림자의 위치 설정
-                                        ),
-                                      ]),
-                                  child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment
-                                              .center, // Row 내부의 위젯을 수평 가운데 정렬
-
-                                          children: [
-                                            TextObject("파일 업로드", fontsize: 25),
-                                            Icon(
-                                              Icons.mic,
-                                              size: 50,
-                                            )
-                                          ],
-                                        ),
-                                        Stack(
-                                          alignment: Alignment.bottomCenter,
-                                          children: [
-                                            Container(
-                                              width: width * 0.6,
-                                              height: height * 0.25,
-                                              decoration: BoxDecoration(
-                                                  color: Colors.grey[100],
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10)),
-                                              child: Center(
-                                                child: Container(
-                                                  width: width * 0.4,
-                                                  height: height * 0.15,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white70,
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            20.0),
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        _pickFile();
-                                                      },
-                                                      child: Image.asset(
-                                                        'assets/data/voice.png',
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: TextObject(file_name,
-                                                  fontsize: 15,
-                                                  fw: FontWeight.w400),
-                                            )
-                                          ],
-                                        ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 15.0),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment
-                                                .center, // Row 내부의 위젯을 수평 가운데 정렬
-
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(30)),
+                                  child: Row(
+                                    children: [
+                                      Image.asset(
+                                        'assets/data/emergency.png',
+                                        width: 50,
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: SizedBox(
+                                          width: width * 0.65,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    _pickFile();
-                                                  },
-                                                  child: Container(
-                                                    width: width * 0.3,
-                                                    height: height * 0.08,
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.blue[100],
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    10))),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceAround,
-                                                      children: [
-                                                        Image.asset(
-                                                          'assets/data/folder.png',
-                                                          width: 30,
-                                                        ),
-                                                        TextObject("업로드하기",
-                                                            fontsize: 15),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  TextObject(
+                                                      "존내 위험" +
+                                                          items[index]
+                                                              .toString(),
+                                                      fontsize: 20),
+                                                  TextObject("11:41 AM",
+                                                      fontsize: 10,
+                                                      textColor:
+                                                          Colors.black54),
+                                                ],
                                               ),
                                               Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    if (_filePath == null) {
-                                                      _pickFile();
-                                                    } else {
-                                                      _uploadFile(_filePath!);
-                                                    }
-                                                  },
-                                                  child: Container(
-                                                    width: width * 0.3,
-                                                    height: height * 0.08,
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.blue[100],
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    10))),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceAround,
-                                                      children: [
-                                                        Image.asset(
-                                                          'assets/data/find.png',
-                                                          width: 30,
-                                                        ),
-                                                        TextObject("분석하기",
-                                                            fontsize: 15),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
+                                                padding: const EdgeInsets.only(
+                                                    top: 8.0),
+                                                child: TextObject(
+                                                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                                    fontsize: 15,
+                                                    fw: FontWeight.w300,
+                                                    overflow: true,
+                                                    maxLine: 1),
                                               ),
                                             ],
                                           ),
-                                        )
-                                      ]),
-                                ),
-                              )
-                            ]))
-                      : Container(
-                          child: Column(
-                              // mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 20.0, bottom: 30),
-                                child: TextObject("설정", center: false),
-                              ),
-                            ])))),
-    );
-  }
-}
-
-class MainPage extends StatelessWidget {
-  const MainPage({
-    super.key,
-    required this.width,
-    required this.height,
-  });
-
-  final double width;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      // mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(left: 20.0, bottom: 30),
-          child: TextObject("최근 분석 결과", center: false),
-        ),
-
-        Center(
-          child: Container(
-            width: width * 0.9,
-            height: height * 0.5,
-            // decoration: BoxDecoration(border: Border.all()),
-            child: ListView.builder(
-                itemCount: 100,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: Container(
-                      // width: width * 0.7,
-                      height: height * 0.1,
-                      decoration: BoxDecoration(color: Colors.grey.shade200),
-                      child: index % 2 == 0
-                          ? Row(
-                              children: [
-                                Image.asset(
-                                  'assets/data/emergency.png',
-                                  width: 50,
-                                ),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    TextObject("존내 위험", fontsize: 25),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextObject("존내 위험",
-                                          fontsize: 20, fw: FontWeight.w300),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            )
-                          : Row(
-                              children: [
-                                Image.asset('assets/data/shield.png',
-                                    width: 50),
-                                TextObject("존내 안전", fontsize: 20),
-                              ],
+                                        ),
+                                      ),
+                                    ],
+                                  )),
                             ),
-                    ),
-                  );
-                }),
-          ),
-        ),
-        // Padding(
-        //   padding: const EdgeInsets.all(30.0),
-        //   child: Center(
-        //     child: GestureDetector(
-        //       onTap: () {
-        //         Get.to(() => UploadPage());
-        //       },
-        //       child: Container(
-        //         width: height * 0.1,
-        //         height: height * 0.1,
-        //         decoration: BoxDecoration(
-        //           color: Colors.blueAccent.shade200,
-        //           borderRadius:
-        //               const BorderRadius.all(Radius.circular(70)),
-        //           // border: Border.all(),
-        //           // boxShadow: const [
-        //           //   BoxShadow(
-        //           //     color: Colors.pinkAccent, //그림자 색상
-        //           //     offset: Offset(0, 3), //XY오프셋
-        //           //     blurRadius: 10, //흐림 반경
-        //           //     spreadRadius: 0, //그림자 확장
-        //           //   ),
-        //           // ]
-        //         ),
-        //         child: Center(
-        //             child: Icon(
-        //           Icons.add,
-        //           size: 50,
-        //           color: Colors.white60,
-        //         )),
-        //       ),
-        //     ),
-        //   ),
-        // ),
-
-        // Padding(
-        //   padding: const EdgeInsets.only(top: 50.0),
-        //   child: SizedBox(
-        //     height: height * 0.5,
-        //     width: width,
-        //     child: Stack(
-        //       children: [
-        //         pageView(),
-        //         Container(
-        //           alignment: Alignment(0, 0.75),
-
-        //           //dot indicator
-        //           child: SmoothPageIndicator(
-        //             controller: _controller,
-        //             count: 3,
-        //             effect: SwapEffect(),
-        //           ),
-        //           //next button
-        //         )
-        //       ],
-        //     ),
-        //   ),
-        // ),
-        // Padding(
-        //   padding: const EdgeInsets.only(top: 40.0),
-        //   child: GestureDetector(
-        //전송 버튼
-
-//                         onTap: () async {
-//                           //전송시 동작
-// // 파일 선택 다이얼로그 열기
-//                           _pickFile();
-
-//                           LoadingController.to.isLoading = true;
-//                           Future.delayed(Duration(seconds: 5), () {
-//                             LoadingController.to.isLoading = false;
-//                             Get.to(() => const ResultPage());
-//                           });
-//                         },
-
-        // child: Container(
-        //   width: height * 0.2,
-        //   height: height * 0.2,
-        //   decoration: BoxDecoration(
-        //       color: Colors.white,
-        //       borderRadius:
-        //           const BorderRadius.all(Radius.circular(70)),
-        //       border: Border.all(),
-        //       boxShadow: const [
-        //         BoxShadow(
-        //           color: Colors.pinkAccent, //그림자 색상
-        //           offset: Offset(0, 3), //XY오프셋
-        //           blurRadius: 10, //흐림 반경
-        //           spreadRadius: 0, //그림자 확장
-        //         ),
-        //       ]),
-        //   child: Center(child: Text("전송버튼")),
-        // ),
-        // ),
-        // )
-      ],
-    );
+                          );
+                        }),
+                  )))
+        ]);
   }
 }
 

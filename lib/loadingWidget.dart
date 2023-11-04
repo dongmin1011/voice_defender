@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 
 class LoadingWidget extends StatelessWidget {
   const LoadingWidget({
@@ -13,7 +14,7 @@ class LoadingWidget extends StatelessWidget {
       //isLoading(obs)가 변경되면 다시 그림.
       () => Offstage(
         offstage: !LoadingController.to.isLoading, // isLoading이 false면 감춰~
-        child: Stack(children: const <Widget>[
+        child: Stack(children: <Widget>[
           //다시 stack
           Opacity(
             //뿌옇게~
@@ -22,13 +23,15 @@ class LoadingWidget extends StatelessWidget {
                 ModalBarrier(dismissible: false, color: Colors.black), //클릭 못하게~
           ),
           Center(
-            child: SpinKitWaveSpinner(
-              size: 100,
-              color: Colors.lightBlueAccent,
-              trackColor: Colors.lightGreenAccent,
-              waveColor: Colors.greenAccent,
-            ),
-          ),
+              child:
+                  Lottie.asset('assets/lottie/voice_loading.json', width: 300)
+              // SpinKitWaveSpinner(
+              //   size: 100,
+              //   color: Colors.lightBlueAccent,
+              //   trackColor: Colors.lightGreenAccent,
+              //   waveColor: Colors.greenAccent,
+              // ),
+              ),
         ]),
       ),
     );

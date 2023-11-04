@@ -1,179 +1,244 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:voice_defender/basicObject.dart';
 import 'package:voice_defender/main.dart';
+import 'package:lottie/lottie.dart';
 
 class ResultPage extends StatelessWidget {
-  const ResultPage({super.key});
-
+  const ResultPage({super.key, required this.response});
+  final response;
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    List<String> reasons =
+        List<String>.from(response?['analysis_result']?['reasons'] ?? []);
+
     return Scaffold(
-      // extendBodyBehindAppBar: true,
-      body: Container(
-        color: Colors.grey[200],
-        child: CustomScrollView(
+        // extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          iconTheme: const IconThemeData(color: Colors.black54, size: 25),
+
+          title: Image.asset(
+            "assets/data/logo.png",
+            width: 200,
+          ),
+          toolbarHeight: 150,
+          centerTitle: true,
+          elevation: 0,
+          // shape: RoundedRectangleBorder(
+          //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(25))),
+          backgroundColor: Colors.transparent,
+        ),
+        body: SingleChildScrollView(
           physics:
               BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-          slivers: [
-            SliverAppBar(
-              // title: IconButton(onPressed: () {}, icon: Icon(Icons.clear)),
-              toolbarHeight: 80,
-              title: Text("Voice Defender"),
-              leading: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircleAvatar(
-                    foregroundColor: Colors.black,
-                    backgroundColor: Colors.white54,
-                    child: IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Get.back();
-                      },
-                    )),
+          child: Container(
+            decoration: const BoxDecoration(
+              // color: Colors.black,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
               ),
-              // foregroundColor: Colors.black,
-              elevation: 0,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              pinned: true,
-              backgroundColor: Colors.blueAccent,
-              // c: Colors.grey[200],
-              expandedHeight: 300,
-              flexibleSpace: FlexibleSpaceBar(
-                  // collapseMode: CollapseMode.parallax,
-
-                  // title: Text("인식결과"),
-                  // titlePadding: EdgeInsets.only(bottom: 10),
-                  // stretchModes: <StretchMode>[
-                  //   StretchMode.zoomBackground,
-                  //   StretchMode.blurBackground,
-                  //   StretchMode.fadeTitle,
-                  // ],
-                  // centerTitle: true,
-                  background: Container(
-                decoration: const BoxDecoration(
-                  // color: Colors.black,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
-                  ),
-                  // border: Border.all(),
-                  color: Colors.pinkAccent,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              // border: Border.all(),
+              color: Colors.white60,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                // mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      const Text("인식결과",
-                          style: TextStyle(
-                            fontSize: 32, // 글꼴 크기 조정
-                            fontWeight: FontWeight.bold, // 글꼴 두께 조정
-                            fontStyle: FontStyle.normal, // 글꼴 스타일 조정
-                            color: Colors.black, // 글꼴 색상 설정
-                          )),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 30.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: width * 0.7,
-                              height: height * 0.05,
-                              decoration: const BoxDecoration(
-                                  color: Colors.white60,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(30))),
+                      Lottie.asset('assets/lottie/siren.json', width: 50),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextObject("위험도가 높게 나타났습니다.",
+                              fontsize: 20, textColor: Colors.red[700]),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: TextObject("보이스피싱에 주의하세요!!.",
+                                fontsize: 15,
+                                textColor: Colors.black87,
+                                fw: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: TextObject("예방 Tip) 둘만 알고 있는 질문을 해보세요!",
+                        fontsize: 15,
+                        textColor: Colors.black87,
+                        fw: FontWeight.w400),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30.0),
+                    child: Center(
+                      child: Container(
+                        height: height * 0.3,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black
+                                  .withOpacity(0.2), // 그림자 색상 및 불투명도 설정
+                              blurRadius: 5, // 그림자의 흐림 정도 설정
+                              offset: Offset(0, 2), // 그림자의 위치 설정
                             ),
-                            Column(
-                              children: [
-                                Text("위험",
-                                    style: TextStyle(
-                                      fontSize: 32, // 글꼴 크기 조정
-                                      fontWeight: FontWeight.bold, // 글꼴 두께 조정
-                                      fontStyle: FontStyle.normal, // 글꼴 스타일 조정
-                                      color: Colors.black, // 글꼴 색상 설정
-                                    )),
-                                Text("89%",
-                                    style: TextStyle(
-                                      fontSize: 32, // 글꼴 크기 조정
-                                      fontWeight: FontWeight.bold, // 글꼴 두께 조정
-                                      fontStyle: FontStyle.normal, // 글꼴 스타일 조정
-                                      color: Colors.black, // 글꼴 색상 설정
-                                    )),
-                              ],
-                            )
                           ],
                         ),
-                      )
-                    ],
-                  ),
-                ),
-                // child: Column(children: [Text("안녕")]),
-              )),
-
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(30),
-                child: Container(
-                  color: Colors.white70,
-                  width: double.maxFinite,
-                  child: Row(
-                    children: [
-                      Expanded(
-                          flex: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 10.0),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: IconButton(
-                                icon: Icon(Icons.home_outlined),
-                                onPressed: () {
-                                  Get.offAll(() => MyApp());
-                                },
-                              ),
-                            ),
-                          )),
-                      Expanded(
-                        flex: 1,
-                        child: Center(
-                          child: Text(
-                            "인식 결과",
-                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 20.0),
+                                  child: TextObject("딥보이스 위험도", fontsize: 20),
+                                ),
+                                Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: width * 0.9,
+                                            height: 13,
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey[300],
+                                                // border: Border.all(),
+                                                borderRadius:
+                                                    BorderRadius.circular(10)),
+                                          ),
+                                          Container(
+                                            width: width *
+                                                0.9 *
+                                                response['phising_result']
+                                                        ['deep_voice_result']
+                                                    ['confidence'],
+                                            height: 13,
+                                            decoration: BoxDecoration(
+                                                color: Colors.red[600],
+                                                borderRadius:
+                                                    BorderRadius.circular(10)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        TextObject("0",
+                                            fontsize: 15,
+                                            textColor: Colors.grey[400]),
+                                        TextObject("100",
+                                            fontsize: 15,
+                                            textColor: Colors.grey[400])
+                                      ],
+                                    )
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 15.0),
+                                  child: Divider(
+                                      thickness: 1,
+                                      height: 1,
+                                      color: Colors.grey[300]),
+                                ),
+                                TextObject("보이스피싱 위험도", fontsize: 20),
+                                Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: width * 0.9,
+                                            height: 13,
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey[300],
+                                                // border: Border.all(),
+                                                borderRadius:
+                                                    BorderRadius.circular(10)),
+                                          ),
+                                          Container(
+                                            width: width *
+                                                0.9 *
+                                                response['phising_result']
+                                                    ['confidence'],
+                                            height: 13,
+                                            decoration: BoxDecoration(
+                                                color: Colors.red[600],
+                                                borderRadius:
+                                                    BorderRadius.circular(10)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        TextObject("0",
+                                            fontsize: 15,
+                                            textColor: Colors.grey[400]),
+                                        TextObject("100",
+                                            fontsize: 15,
+                                            textColor: Colors.grey[400])
+                                      ],
+                                    )
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 15.0),
+                                  child: Divider(
+                                      thickness: 1,
+                                      height: 1,
+                                      color: Colors.grey[300]),
+                                ),
+                              ]),
                         ),
                       ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(""),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(children: [
-                    Container(
-                      height: 700,
-                      decoration: BoxDecoration(border: Border.all()),
                     ),
-                    // StoreTitle(width, height, _storeValue),
-                  ]),
-                ),
+                  ),
+                  TextObject("의심되는 단어", fontsize: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Container(
+                        // height: 100,
+                        // decoration: BoxDecoration(border: Border.all()),
+                        child: Wrap(
+                      children: reasons.map((reason) {
+                        return Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Container(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextObject(reason,
+                                  fontsize: 20, fw: FontWeight.w400),
+                            ),
+                            decoration: BoxDecoration(
+                                color: Colors.white70,
+                                border: Border.all(width: 3),
+                                borderRadius: BorderRadius.circular(30)),
+                          ),
+                        );
+                      }).toList(),
+                    )),
+                  )
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-Widget TextObject(
-  String msg, {
-  Color textColor = Colors.black,
-  double fontsize = 30,
-  FontWeight fw = FontWeight.bold,
-  bool center = true,
-  bool showShadow = false, // 그림자 표시 여부를 추가합니다.
-}) {
+Widget TextObject(String msg,
+    {Color? textColor = Colors.black,
+    double fontsize = 30,
+    FontWeight fw = FontWeight.bold,
+    bool center = true,
+    bool showShadow = false, // 그림자 표시 여부를 추가합니다.
+    bool overflow = true,
+    int maxLine = 100}) {
   final text = Text(
     msg,
     textAlign: center ? TextAlign.center : null,
@@ -17,6 +17,8 @@ Widget TextObject(
       fontFamily: 'Jamsil',
       fontWeight: fw,
     ),
+    overflow: overflow ? TextOverflow.ellipsis : null,
+    maxLines: maxLine, // 표시할 최대 줄 수
     // overflow: TextOverflow.ellipsis,
   );
 
