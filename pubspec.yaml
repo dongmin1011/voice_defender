@@ -25,6 +25,8 @@ dependencies:
   curved_navigation_bar: ^1.0.3
   lottie: ^2.7.0
   flutter_slidable: ^3.0.1
+  sqflite: ^2.3.0
+  intl: ^0.18.1
   
 
   # The following adds the Cupertino Icons font to your application.

@@ -21,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:dio/dio.dart';
+import 'package:voice_defender/sql/file.dart';
+import 'package:voice_defender/sql/fileDB.dart';
 import 'loadingWidget.dart';
 import 'notification.dart';
 import 'dart:async';
@@ -287,10 +289,13 @@ class _MyHomePageState extends State<MyHomePage> {
   bool autoSendSwitchValue = false;
   bool notificationSwitchValue = false;
 
+  final database = FileDB();
+
   @override
   void initState() {
     //page컨트롤러 초기화
     super.initState();
+    database.initDB();
 
     _requestPermission();
     _startListening();
@@ -460,6 +465,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
       print(response);
       // print(response.runtimeType);
+
+      final file = File_table(
+          filename: response.data['filename'],
+          created_at: response.data['created_at'],
+          is_phising: response.data['phising_result']['is_phising'],
+          confidence: response.data['phising_result']['confidence'],
+          reasons: response.data['phising_result']['reasons'],
+          Text: response.data['phising_result']['text'],
+          is_deep_voice: response.data['phising_result']['deep_voice_result']
+              ['is_deep_voice'],
+          deep_voice_confidence: response.data['phising_result']
+              ['deep_voice_result']['confidence']);
+      database.insert(file);
       Get.to(() => ResultPage(
             response: response.data,
           ));
