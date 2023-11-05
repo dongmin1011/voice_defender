@@ -82,7 +82,7 @@ Future<void> initializeService() async {
       autoStart: true,
       isForegroundMode: true,
       notificationChannelId: 'my_foreground',
-      initialNotificationTitle: '후아유 실행중',
+      initialNotificationTitle: '보이스디펜더 실행중',
       initialNotificationContent: '안심하고 통화하세요!',
       foregroundServiceNotificationId: 888,
     ),
@@ -298,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
         print('[Main] 정상통화');
         if (!notificationSwitchValue) {
           FlutterLocalNotification.showNotification(
-              '후아유', '안심하세요. 아무것도 탐지되지 않았습니다.');
+              '보이스디펜더', '안심하세요. 아무것도 탐지되지 않았습니다.');
         }
       }
     }
@@ -318,8 +318,8 @@ class _MyHomePageState extends State<MyHomePage> {
             bool autoSendSwitchValue =
                 prefs.getBool('autoSendSwitchValue') ?? true;
             if (autoSendSwitchValue) {
-              // _uploadAudioFile();
-              _getDummisData();
+              _uploadAudioFile();
+              // _getDummisData();
             }
           }
           setState(() {
@@ -404,11 +404,9 @@ class _MyHomePageState extends State<MyHomePage> {
     String filename = file.uri.pathSegments.last.split('/').last;
 
     FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        file.path,
-        // filename: filename
-        filename: filename + ".m4a",
-      ),
+      'file': await MultipartFile.fromFile(file.path, filename: filename
+          // filename: filename + ".m4a",
+          ),
     });
 
     Response response = await dio.post(uploadUrl, data: formData);
