@@ -195,27 +195,29 @@ class ResultPage extends StatelessWidget {
                   TextObject("의심되는 단어", fontsize: 20),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Container(
-                        // height: 100,
-                        // decoration: BoxDecoration(border: Border.all()),
-                        child: Wrap(
-                      children: reasons.map((reason) {
-                        return Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Container(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextObject(reason,
-                                  fontsize: 20, fw: FontWeight.w400),
-                            ),
-                            decoration: BoxDecoration(
-                                color: Colors.white70,
-                                border: Border.all(width: 3),
-                                borderRadius: BorderRadius.circular(30)),
-                          ),
-                        );
-                      }).toList(),
-                    )),
+                    child: reasons[0] != ""
+                        ? Container(
+                            // height: 100,
+                            // decoration: BoxDecoration(border: Border.all()),
+                            child: Wrap(
+                            children: reasons.map((reason) {
+                              return Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Container(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextObject(reason,
+                                        fontsize: 20, fw: FontWeight.w400),
+                                  ),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white70,
+                                      border: Border.all(width: 3),
+                                      borderRadius: BorderRadius.circular(30)),
+                                ),
+                              );
+                            }).toList(),
+                          ))
+                        : SizedBox(),
                   )
                 ],
               ),

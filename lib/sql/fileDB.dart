@@ -40,9 +40,16 @@ CREATE TABLE IF NOT EXISTS $tableName (
 
     final List<Map<String, dynamic>> processedData = maps.map((map) {
       // "reasons" 필드를 JSON 문자열로 파싱
-      final reasonsJson = map['reasons'];
-      List<dynamic> newList =
-          reasonsJson == "[]" ? jsonDecode(reasonsJson) : [];
+      var reasonsJson = map['reasons'];
+      // reasonsJson = reasonsJson.toString().replaceAll('\\', '');
+      print("reason" + reasonsJson.toString());
+
+      // print(jsonDecode(reasonsJson));
+      String newList = jsonDecode(reasonsJson);
+      newList =
+          newList.replaceAll('[', '').replaceAll(']', '').replaceAll("\"", "");
+
+      List<String> stringList = newList.split(','); // 쉼표로 분할
 
       // final List<dynamic> reasonsList =
       //     reasonsJson != null ? jsonDecode(reasonsJson) : [];
@@ -50,7 +57,7 @@ CREATE TABLE IF NOT EXISTS $tableName (
       // "reasons" 필드를 리스트로 변환하여 맵에 추가
       final Map<String, dynamic> processedMap = {
         ...map,
-        "reasons": newList,
+        "reasons": stringList,
       };
 
       return processedMap;

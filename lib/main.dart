@@ -392,8 +392,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _uploadFile(String filePath) async {
     File file = File(filePath);
     LoadingController.to.isLoading = true;
-    // String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis-test';
-    String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis';
+    String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis-test';
+    // String uploadUrl = 'http://222.105.252.28:8080/api/ai/analysis';
     Dio dio = Dio();
 
     // String ext = file.uri.pathSegments.last.split('.').last;
@@ -403,16 +403,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
     String filename = file.uri.pathSegments.last.split('/').last;
 
-    FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        file.path,
-        // filename: filename
-        filename: filename + ".m4a",
-      ),
-    });
+    // FormData formData = FormData.fromMap({
+    //   'file': await MultipartFile.fromFile(
+    //     file.path,
+    //     // filename: filename
+    //     filename: filename + ".m4a",
+    //   ),
+    // });
 
-    Response response = await dio.post(uploadUrl, data: formData);
-    // var response = await dio.post(uploadUrl);
+    // Response response = await dio.post(uploadUrl, data: formData);
+    var response = await dio.post(uploadUrl);
 
     if (response.statusCode == 200) {
       print('File upload successful');
