@@ -9,7 +9,7 @@ class File_table {
   String? Text;
   bool? is_deep_voice;
   double? deep_voice_confidence;
-  List<dynamic>? reasons;
+  String? reasons;
 
   File_table({
     this.id,

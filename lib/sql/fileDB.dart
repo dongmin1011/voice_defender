@@ -35,18 +35,22 @@ CREATE TABLE IF NOT EXISTS $tableName (
 
   Future<List<Map<String, dynamic>>?> selectAll() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db!.query(tableName);
+    final List<Map<String, dynamic>> maps =
+        await db!.query(tableName, orderBy: "created_at DESC");
 
     final List<Map<String, dynamic>> processedData = maps.map((map) {
       // "reasons" 필드를 JSON 문자열로 파싱
       final reasonsJson = map['reasons'];
-      final List<dynamic> reasonsList =
-          reasonsJson != null ? jsonDecode(reasonsJson) : [];
+      List<dynamic> newList =
+          reasonsJson == "[]" ? jsonDecode(reasonsJson) : [];
+
+      // final List<dynamic> reasonsList =
+      //     reasonsJson != null ? jsonDecode(reasonsJson) : [];
 
       // "reasons" 필드를 리스트로 변환하여 맵에 추가
       final Map<String, dynamic> processedMap = {
         ...map,
-        "reasons": reasonsList,
+        "reasons": newList,
       };
 
       return processedMap;
@@ -55,50 +59,17 @@ CREATE TABLE IF NOT EXISTS $tableName (
     return processedData;
   }
 
-  Future<Map<String, dynamic>?> selectById(int id) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps =
-        await db!.query(tableName, where: 'id = ?', whereArgs: [id]);
-
-    if (maps.isEmpty) return null;
-
-    final map = maps.first;
-
-    // "reasons" 필드를 JSON 문자열로 파싱
-    final reasonsJson = map['reasons'];
-    final List<dynamic> reasonsList =
-        reasonsJson != null ? jsonDecode(reasonsJson) : [];
-
-    final Map<String, dynamic> phisingResult = {
-      "id": map["id"],
-      'filename': map["filename"],
-      'created_at': map["created_at"],
-      "phising_result": {
-        "is_phising": map["is_phising"],
-        "confidence": map["confidence"],
-        "reasons": reasonsList, // "reasons" 리스트 추가
-        "text": map['text'],
-        "deep_voice_result": {
-          "is_deep_voice": map["is_deep_voice"],
-          "deep_voice_confidence": map["deep_voice_confidence"],
-        }
-      }
-    };
-
-    return phisingResult;
-  }
-
   Future<void> insert(File_table file) async {
     final db = await database;
     file.id = await db?.insert(tableName, file.toMap());
   }
 
-  Future<void> delete(File_table file) async {
+  Future<void> delete(int id) async {
     final db = await database;
     await db?.delete(
       tableName,
       where: "id = ?",
-      whereArgs: [file.id],
+      whereArgs: [id],
     );
   }
 }

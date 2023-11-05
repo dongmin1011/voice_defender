@@ -146,6 +146,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class MyHomePageController extends GetxController {}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -167,6 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // bool notificationSwitchValue = true;
 
   final database = FileDB();
+  final MyHomePageController _myController = Get.put(MyHomePageController());
 
   @override
   void initState() {
@@ -358,9 +361,11 @@ class _MyHomePageState extends State<MyHomePage> {
     String filename = file.uri.pathSegments.last.split('/').last;
 
     FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(file.path, filename: filename
-          // filename: filename + ".m4a",
-          ),
+      'file': await MultipartFile.fromFile(
+        file.path,
+        // filename: filename
+        filename: filename + ".m4a",
+      ),
     });
 
     Response response = await dio.post(uploadUrl, data: formData);
@@ -378,7 +383,7 @@ class _MyHomePageState extends State<MyHomePage> {
           created_at: response.data['created_at'],
           is_phising: response.data['phising_result']['is_phising'],
           confidence: response.data['phising_result']['confidence'],
-          reasons: response.data['phising_result']['reasons'],
+          reasons: jsonEncode(response.data['phising_result']['reasons']),
           Text: response.data['phising_result']['text'],
           is_deep_voice: response.data['phising_result']['deep_voice_result']
               ['is_deep_voice'],
@@ -425,213 +430,117 @@ class _MyHomePageState extends State<MyHomePage> {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false, // 앱 상단에 "Debug" 라벨 숨기기
 
-      home: Stack(
-        children: [
-          Scaffold(
-              // extendBodyBehindAppBar: true, //영역을 확장하여 적용
-              // backgroundColor: Colors.grey[200],
-              appBar: AppBar(
-                iconTheme: const IconThemeData(color: Colors.black54, size: 25),
+      home: GetBuilder<MyHomePageController>(
+        builder: (controller) => Stack(
+          children: [
+            Scaffold(
+                // extendBodyBehindAppBar: true, //영역을 확장하여 적용
+                // backgroundColor: Colors.grey[200],
+                appBar: AppBar(
+                  iconTheme:
+                      const IconThemeData(color: Colors.black54, size: 25),
 
-                title: Image.asset(
-                  "assets/data/logo.png",
-                  width: 200,
+                  title: Image.asset(
+                    "assets/data/logo.png",
+                    width: 200,
+                  ),
+                  toolbarHeight: 150,
+                  centerTitle: true,
+                  elevation: 0,
+                  // shape: RoundedRectangleBorder(
+                  //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(25))),
+                  backgroundColor: Colors.transparent,
                 ),
-                toolbarHeight: 150,
-                centerTitle: true,
-                elevation: 0,
-                // shape: RoundedRectangleBorder(
-                //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(25))),
-                backgroundColor: Colors.transparent,
-              ),
-              bottomNavigationBar: CurvedNavigationBar(
-                  backgroundColor: Colors.white,
-                  color: Colors.blue.shade400,
-                  animationDuration: const Duration(milliseconds: 300),
-                  animationCurve: Curves.decelerate,
-                  onTap: (value) {
-                    setState(() {
-                      index = value;
-                    });
-                  },
-                  items: [
-                    Icon(
-                      Icons.home,
-                      color: Colors.white,
-                    ),
-                    Icon(Icons.add, color: Colors.white),
-                    Icon(Icons.settings, color: Colors.white)
-                  ]),
-              // drawer: Container(),
-              body: Container(
-                  // color: Colors.grey[200],
-                  child: index == 0
-                      ? MainPage(width, height)
-                      : index == 1
-                          ? UploadPage(width, height)
-                          : Container(
-                              child: Column(
-                                // mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 20.0, bottom: 20),
-                                    child: TextObject("환경 설정", center: false),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 20.0, bottom: 10),
-                                    child: TextObject("전송 기능", fontsize: 20),
-                                  ),
-                                  Center(
-                                    child: Column(children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Container(
-                                          width: width * 0.9,
-                                          decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(20)),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                TextObject("통화 종료 후 자동 분석",
-                                                    fontsize: 20,
-                                                    fw: FontWeight.w400),
-                                                CupertinoSwitch(
-                                                  value: autoSendSwitchValue,
-                                                  activeColor: CupertinoColors
-                                                      .activeGreen,
-                                                  onChanged:
-                                                      (bool? value) async {
-                                                    final SharedPreferences
-                                                        prefs =
-                                                        await SharedPreferences
-                                                            .getInstance();
-                                                    setState(() {
-                                                      autoSendSwitchValue =
-                                                          value ?? false;
-                                                    });
-                                                    await prefs.setBool(
-                                                        'autoSendSwitchValue',
-                                                        autoSendSwitchValue);
-                                                  },
-                                                )
-                                                // CupertinoSwitch(
-                                                //     value: autoSendSwitchValue,
-                                                //     activeColor: CupertinoColors
-                                                //         .activeGreen,
-                                                //     onChanged: (bool? Value) {
-                                                //       setState(() {
-                                                //         autoSendSwitchValue =
-                                                //             Value ?? false;
-                                                //       });
-                                                //     })
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Container(
-                                          width: width * 0.9,
-                                          decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(20)),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                TextObject("보이스피싱 의심될 때만 알림",
-                                                    fontsize: 20,
-                                                    fw: FontWeight.w400),
-                                                CupertinoSwitch(
-                                                    value:
-                                                        notificationSwitchValue,
+                bottomNavigationBar: CurvedNavigationBar(
+                    backgroundColor: Colors.white,
+                    color: Colors.blue.shade400,
+                    animationDuration: const Duration(milliseconds: 300),
+                    animationCurve: Curves.decelerate,
+                    onTap: (value) {
+                      setState(() {
+                        index = value;
+                      });
+                    },
+                    items: [
+                      Icon(
+                        Icons.home,
+                        color: Colors.white,
+                      ),
+                      Icon(Icons.add, color: Colors.white),
+                      Icon(Icons.settings, color: Colors.white)
+                    ]),
+                // drawer: Container(),
+                body: Container(
+                    // color: Colors.grey[200],
+                    child: index == 0
+                        ? MainPage(width, height, controller)
+                        : index == 1
+                            ? UploadPage(width, height)
+                            : Container(
+                                child: Column(
+                                  // mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 20.0, bottom: 20),
+                                      child: TextObject("환경 설정", center: false),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 20.0, bottom: 10),
+                                      child: TextObject("전송 기능", fontsize: 20),
+                                    ),
+                                    Center(
+                                      child: Column(children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Container(
+                                            width: width * 0.9,
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  TextObject("통화 종료 후 자동 분석",
+                                                      fontsize: 20,
+                                                      fw: FontWeight.w400),
+                                                  CupertinoSwitch(
+                                                    value: autoSendSwitchValue,
                                                     activeColor: CupertinoColors
                                                         .activeGreen,
                                                     onChanged:
-                                                        (bool? Value) async {
+                                                        (bool? value) async {
                                                       final SharedPreferences
                                                           prefs =
                                                           await SharedPreferences
                                                               .getInstance();
                                                       setState(() {
-                                                        notificationSwitchValue =
-                                                            Value ?? false;
+                                                        autoSendSwitchValue =
+                                                            value ?? false;
                                                       });
                                                       await prefs.setBool(
-                                                          'notificationSwitchValue',
-                                                          notificationSwitchValue);
-                                                    })
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 20, horizontal: 20),
-                                        child: Divider(
-                                          thickness: 2,
-                                          height: 2,
-                                        ),
-                                      ),
-                                    ]),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 20.0, bottom: 10),
-                                    child:
-                                        TextObject("개인정보 처리방침", fontsize: 20),
-                                  ),
-                                  Center(
-                                    child: Column(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Container(
-                                            width: width * 0.9,
-                                            decoration: BoxDecoration(
-                                                color: Colors.grey[200],
-                                                borderRadius:
-                                                    BorderRadius.circular(20)),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8.0,
-                                                      vertical: 15),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  TextObject("개인정보 처리방침",
-                                                      fontsize: 20,
-                                                      fw: FontWeight.w400),
-                                                  Row(
-                                                    children: [
-                                                      TextObject("상세보기",
-                                                          fontsize: 15,
-                                                          fw: FontWeight.w200),
-                                                      Icon(
-                                                        Icons
-                                                            .arrow_forward_ios_rounded,
-                                                        color: Colors.grey[400],
-                                                      )
-                                                    ],
+                                                          'autoSendSwitchValue',
+                                                          autoSendSwitchValue);
+                                                    },
                                                   )
+                                                  // CupertinoSwitch(
+                                                  //     value: autoSendSwitchValue,
+                                                  //     activeColor: CupertinoColors
+                                                  //         .activeGreen,
+                                                  //     onChanged: (bool? Value) {
+                                                  //       setState(() {
+                                                  //         autoSendSwitchValue =
+                                                  //             Value ?? false;
+                                                  //       });
+                                                  //     })
                                                 ],
                                               ),
                                             ),
@@ -647,80 +556,191 @@ class _MyHomePageState extends State<MyHomePage> {
                                                     BorderRadius.circular(20)),
                                             child: Padding(
                                               padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8.0,
-                                                      vertical: 15),
+                                                  const EdgeInsets.all(8.0),
                                               child: Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
                                                         .spaceBetween,
                                                 children: [
-                                                  TextObject("정책",
+                                                  TextObject("보이스피싱 의심될 때만 알림",
                                                       fontsize: 20,
                                                       fw: FontWeight.w400),
-                                                  Row(
-                                                    children: [
-                                                      TextObject("상세보기",
-                                                          fontsize: 15,
-                                                          fw: FontWeight.w200),
-                                                      Icon(
-                                                        Icons
-                                                            .arrow_forward_ios_rounded,
-                                                        color: Colors.grey[400],
-                                                      )
-                                                    ],
-                                                  )
+                                                  CupertinoSwitch(
+                                                      value:
+                                                          notificationSwitchValue,
+                                                      activeColor:
+                                                          CupertinoColors
+                                                              .activeGreen,
+                                                      onChanged:
+                                                          (bool? Value) async {
+                                                        final SharedPreferences
+                                                            prefs =
+                                                            await SharedPreferences
+                                                                .getInstance();
+                                                        setState(() {
+                                                          notificationSwitchValue =
+                                                              Value ?? false;
+                                                        });
+                                                        await prefs.setBool(
+                                                            'notificationSwitchValue',
+                                                            notificationSwitchValue);
+                                                      })
                                                 ],
                                               ),
                                             ),
                                           ),
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Container(
-                                            width: width * 0.9,
-                                            decoration: BoxDecoration(
-                                                color: Colors.grey[200],
-                                                borderRadius:
-                                                    BorderRadius.circular(20)),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8.0,
-                                                      vertical: 15),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  TextObject("이용약관",
-                                                      fontsize: 20,
-                                                      fw: FontWeight.w400),
-                                                  Row(
-                                                    children: [
-                                                      TextObject("상세보기",
-                                                          fontsize: 15,
-                                                          fw: FontWeight.w200),
-                                                      Icon(
-                                                        Icons
-                                                            .arrow_forward_ios_rounded,
-                                                        color: Colors.grey[400],
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                            ),
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 20, horizontal: 20),
+                                          child: Divider(
+                                            thickness: 2,
+                                            height: 2,
                                           ),
                                         ),
-                                      ],
+                                      ]),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ))),
-          LoadingWidget(),
-        ],
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 20.0, bottom: 10),
+                                      child:
+                                          TextObject("개인정보 처리방침", fontsize: 20),
+                                    ),
+                                    Center(
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Container(
+                                              width: width * 0.9,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey[200],
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 15),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    TextObject("개인정보 처리방침",
+                                                        fontsize: 20,
+                                                        fw: FontWeight.w400),
+                                                    Row(
+                                                      children: [
+                                                        TextObject("상세보기",
+                                                            fontsize: 15,
+                                                            fw: FontWeight
+                                                                .w200),
+                                                        Icon(
+                                                          Icons
+                                                              .arrow_forward_ios_rounded,
+                                                          color:
+                                                              Colors.grey[400],
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Container(
+                                              width: width * 0.9,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey[200],
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 15),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    TextObject("정책",
+                                                        fontsize: 20,
+                                                        fw: FontWeight.w400),
+                                                    Row(
+                                                      children: [
+                                                        TextObject("상세보기",
+                                                            fontsize: 15,
+                                                            fw: FontWeight
+                                                                .w200),
+                                                        Icon(
+                                                          Icons
+                                                              .arrow_forward_ios_rounded,
+                                                          color:
+                                                              Colors.grey[400],
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Container(
+                                              width: width * 0.9,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey[200],
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 15),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    TextObject("이용약관",
+                                                        fontsize: 20,
+                                                        fw: FontWeight.w400),
+                                                    Row(
+                                                      children: [
+                                                        TextObject("상세보기",
+                                                            fontsize: 15,
+                                                            fw: FontWeight
+                                                                .w200),
+                                                        Icon(
+                                                          Icons
+                                                              .arrow_forward_ios_rounded,
+                                                          color:
+                                                              Colors.grey[400],
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ))),
+            LoadingWidget(),
+          ],
+        ),
       ),
     );
   }
@@ -886,13 +906,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ]));
   }
 
-  final items = List<String>.generate(30, (i) => "Item ${i + 1}");
-  void _onDismissed(int index) {
-    final item = items[index];
-    setState(() => items.removeAt(index));
+  // final items = List<String>.generate(30, (i) => "Item ${i + 1}");
+  Future<void> _onDismissed(int index, int id) async {
+    await database.delete(id);
+    // final item = items[index];
+    // setState(() => items.removeAt(index));
   }
 
-  Column MainPage(double width, double height) {
+  Column MainPage(double width, double height, controller) {
     return Column(
         // mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -906,96 +927,191 @@ class _MyHomePageState extends State<MyHomePage> {
                   width: width * 0.9,
                   height: height * 0.5,
                   // decoration: BoxDecoration(border: Border.all()),
-                  child: SlidableAutoCloseBehavior(
-                    closeWhenOpened: true,
-                    child: ListView.builder(
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 7.0),
-                            child: Slidable(
-                              key: Key(item),
-                              endActionPane: ActionPane(
-                                motion: const StretchMotion(),
-                                dismissible: DismissiblePane(
-                                  onDismissed: () {
-                                    _onDismissed(index);
-                                    // index -= 1;
-                                  },
-                                ),
-                                children: [
-                                  SlidableAction(
-                                    backgroundColor: Colors.red,
-                                    icon: Icons.delete,
-                                    label: 'delete',
-                                    onPressed: (context) => _onDismissed(
-                                      index,
+                  child: FutureBuilder(
+                    future: database.selectAll(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return TextObject("최근 분석 결과가 없습니다.",
+                            fontsize: 20, fw: FontWeight.w400);
+                      }
+                      final items = snapshot.data!;
+                      return SlidableAutoCloseBehavior(
+                        closeWhenOpened: true,
+                        child: ListView.builder(
+                            itemCount: items.length,
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              item['is_phising'] = (item['is_phising'] != 0);
+                              item['is_deep_voice'] =
+                                  (item['is_deep_voice'] != 0);
+                              // print();
+                              // item['reasons'].add("은행");
+                              // item['reasons'].add("돈");
+                              print(item);
+
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 7.0),
+                                child: Slidable(
+                                  key: Key(item['id'].toString()),
+                                  endActionPane: ActionPane(
+                                    motion: const StretchMotion(),
+                                    dismissible: DismissiblePane(
+                                      onDismissed: () {
+                                        _onDismissed(index, item['id']);
+                                        controller.update();
+
+                                        // index -= 1;
+                                      },
                                     ),
-                                  )
-                                ],
-                              ),
-                              child: Container(
-                                  // width: width * 0.7,
-                                  padding: EdgeInsets.all(10),
-                                  height: 90,
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(30)),
-                                  child: Row(
                                     children: [
-                                      Image.asset(
-                                        'assets/data/emergency.png',
-                                        width: 50,
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 8.0),
-                                        child: SizedBox(
-                                          width: width * 0.65,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  TextObject(
-                                                      "존내 위험" +
-                                                          items[index]
-                                                              .toString(),
-                                                      fontsize: 20),
-                                                  TextObject("11:41 AM",
-                                                      fontsize: 10,
-                                                      textColor:
-                                                          Colors.black54),
-                                                ],
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    top: 8.0),
-                                                child: TextObject(
-                                                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                                                    fontsize: 15,
-                                                    fw: FontWeight.w300,
-                                                    overflow: true,
-                                                    maxLine: 1),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                      SlidableAction(
+                                          backgroundColor: Colors.red,
+                                          icon: Icons.delete,
+                                          label: 'delete',
+                                          onPressed: (context) {
+                                            _onDismissed(index, item['id']);
+                                            controller.update();
+                                          })
                                     ],
-                                  )),
-                            ),
-                          );
-                        }),
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      // final reasonsJson = item['reasons'];
+                                      // print(reasonsJson.runtimeType);
+
+                                      final Map<String, dynamic> phisingResult =
+                                          {
+                                        "id": item["id"],
+                                        'filename': item["filename"],
+                                        'created_at': item["created_at"],
+                                        "phising_result": {
+                                          "is_phising": item["is_phising"],
+                                          "confidence": item["confidence"],
+                                          "reasons": item[
+                                              'reasons'], // "reasons" 리스트 추가
+                                          "text": item['text'],
+                                          "deep_voice_result": {
+                                            "is_deep_voice":
+                                                item["is_deep_voice"],
+                                            "confidence":
+                                                item["deep_voice_confidence"],
+                                          }
+                                        }
+                                      };
+                                      print(phisingResult);
+                                      print(phisingResult['phising_result']
+                                                  ['deep_voice_result']
+                                              ['confidence']
+                                          .runtimeType);
+                                      Get.to(() =>
+                                          ResultPage(response: phisingResult));
+                                    },
+                                    child: Container(
+                                        // width: width * 0.7,
+                                        padding: EdgeInsets.all(10),
+                                        height: 90,
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey.shade200,
+                                            borderRadius:
+                                                BorderRadius.circular(30)),
+                                        child: Row(
+                                          children: [
+                                            resultImage(item["is_phising"],
+                                                item["is_deep_voice"]),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 8.0),
+                                              child: SizedBox(
+                                                width: width * 0.65,
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        SizedBox(
+                                                          width: width * 0.4,
+                                                          child: TextObject(
+                                                              item['filename'],
+                                                              fontsize: 20,
+                                                              overflow: true,
+                                                              maxLine: 1),
+                                                        ),
+                                                        TextObject(
+                                                            item['created_at']
+                                                                    .substring(
+                                                                        2, 4) +
+                                                                '/' +
+                                                                item['created_at']
+                                                                    .substring(
+                                                                        4, 6) +
+                                                                ' ' +
+                                                                item['created_at']
+                                                                    .substring(
+                                                                        6, 8) +
+                                                                ":" +
+                                                                item['created_at']
+                                                                    .substring(
+                                                                        8, 10),
+                                                            fontsize: 10,
+                                                            textColor:
+                                                                Colors.black54),
+                                                      ],
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 8.0),
+                                                      child: TextObject(
+                                                          item['text'],
+                                                          fontsize: 15,
+                                                          fw: FontWeight.w300,
+                                                          overflow: true,
+                                                          maxLine: 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )),
+                                  ),
+                                ),
+                              );
+                            }),
+                      );
+                    },
                   )))
         ]);
+  }
+
+  Image resultImage(bool phising, bool deepVoice) {
+    if (phising == false && deepVoice == false) {
+      return Image.asset(
+        'assets/data/shield.png',
+        width: 50,
+      );
+    } else if ((phising == true && deepVoice == false) ||
+        (phising == false && deepVoice == true)) {
+      return Image.asset(
+        'assets/data/caution.png',
+        width: 50,
+      );
+    }
+    return Image.asset(
+      'assets/data/emergency.png',
+      width: 50,
+    );
   }
 }
 

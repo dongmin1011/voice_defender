@@ -12,7 +12,7 @@ class ResultPage extends StatelessWidget {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     List<String> reasons =
-        List<String>.from(response?['analysis_result']?['reasons'] ?? []);
+        List<String>.from(response?['phising_result']?['reasons'] ?? []);
 
     return Scaffold(
         // extendBodyBehindAppBar: true,
@@ -49,25 +49,7 @@ class ResultPage extends StatelessWidget {
                 // mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Lottie.asset('assets/lottie/siren.json', width: 50),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextObject("위험도가 높게 나타났습니다.",
-                              fontsize: 20, textColor: Colors.red[700]),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: TextObject("보이스피싱에 주의하세요!!.",
-                                fontsize: 15,
-                                textColor: Colors.black87,
-                                fw: FontWeight.w500),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  resultPrint(response),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
                     child: TextObject("예방 Tip) 둘만 알고 있는 질문을 해보세요!",
@@ -240,5 +222,81 @@ class ResultPage extends StatelessWidget {
             ),
           ),
         ));
+  }
+
+  Widget resultPrint(response) {
+    if (response['phising_result']['is_phising'] == false &&
+        response['phising_result']['deep_voice_result']['is_deep_voice'] ==
+            false) {
+      return Row(children: [
+        Lottie.asset('assets/lottie/safe.json', width: 50),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextObject("안전합니다", fontsize: 20, textColor: Colors.black87),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextObject("안심하고 통화하세요",
+                  fontsize: 15, textColor: Colors.black87, fw: FontWeight.w500),
+            ),
+          ],
+        )
+      ]);
+    } else if (response['phising_result']['is_phising'] == true &&
+        response['phising_result']['deep_voice_result']['is_deep_voice'] ==
+            false) {
+      return Row(children: [
+        Lottie.asset('assets/lottie/siren.json', width: 50),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextObject("보이스피싱 위험도가 높습니다.",
+                fontsize: 20, textColor: Colors.red[700]),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextObject("보이스피싱에 주의하세요!!.",
+                  fontsize: 15, textColor: Colors.black87, fw: FontWeight.w500),
+            ),
+          ],
+        )
+      ]);
+    } else if (response['phising_result']['is_phising'] == false &&
+        response['phising_result']['deep_voice_result']['is_deep_voice'] ==
+            true) {
+      return Row(children: [
+        Lottie.asset('assets/lottie/siren.json', width: 50),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextObject("딥보이스 위험도가 높습니다.",
+                fontsize: 20, textColor: Colors.red[700]),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextObject("딥보이스에 주의하세요!!.",
+                  fontsize: 15, textColor: Colors.black87, fw: FontWeight.w500),
+            ),
+          ],
+        )
+      ]);
+    } else if (response['phising_result']['is_phising'] == true &&
+        response['phising_result']['deep_voice_result']['is_deep_voice'] ==
+            true) {
+      return Row(children: [
+        Lottie.asset('assets/lottie/siren.json', width: 50),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextObject("위험도가 높게 나타났습니다.",
+                fontsize: 20, textColor: Colors.red[700]),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextObject("보이스피싱과 딥보이스에 주의하세요!!.",
+                  fontsize: 15, textColor: Colors.black87, fw: FontWeight.w500),
+            ),
+          ],
+        )
+      ]);
+    }
+    return SizedBox();
   }
 }
