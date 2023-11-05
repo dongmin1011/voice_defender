@@ -49,12 +49,12 @@ class FlutterLocalNotification {
         iOS: DarwinNotificationDetails(badgeNumber: 1));
 
     // 5초 후에 알림을 보냅니다.
-    Future.delayed(const Duration(seconds: 5), () async {
-      await flutterLocalNotificationsPlugin.show(
-          0, title, content, notificationDetails);
-    });
+    // Future.delayed(const Duration(seconds: 5), () async {
+    //   await flutterLocalNotificationsPlugin.show(
+    //       0, title, content, notificationDetails);
+    // });
 
-    // await flutterLocalNotificationsPlugin.show(
-    //     0, title, content, notificationDetails);
+    await flutterLocalNotificationsPlugin.show(
+        0, title, content, notificationDetails);
   }
 }

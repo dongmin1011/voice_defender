@@ -43,7 +43,7 @@ Future<void> main() async {
 
   FlutterLocalNotification.init();
 
-  Future.delayed(const Duration(seconds: 3),
+  Future.delayed(const Duration(seconds: 1),
       FlutterLocalNotification.requestNotificationPermission());
 
   runApp(const MyApp());
@@ -206,6 +206,35 @@ class _MyHomePageState extends State<MyHomePage> {
     await Permission.notification.request();
   }
 
+  Future<void> _getDummisData() async {
+    Dio dio = Dio(
+      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+    );
+
+    String url = '/api/ai/analysis-test';
+    Response res = await dio.post(url);
+
+    if (res.statusCode == 200) {
+      final file = File_table(
+          filename: res.data['filename'],
+          created_at: res.data['created_at'],
+          is_phising: res.data['phising_result']['is_phising'],
+          confidence: res.data['phising_result']['confidence'],
+          reasons: jsonEncode(res.data['phising_result']['reasons']),
+          Text: res.data['phising_result']['text'],
+          is_deep_voice: res.data['phising_result']['deep_voice_result']
+              ['is_deep_voice'],
+          deep_voice_confidence: res.data['phising_result']['deep_voice_result']
+              ['confidence']);
+      database.insert(file);
+
+      print('get Dummies >> ${res.data}');
+
+      FlutterLocalNotification.showNotification('알림', '응답 결과를 확인해주세요.');
+    }
+  }
+
   Future<void> _uploadAudioFile() async {
     Directory dir = Directory('/storage/emulated/0/Recordings/Call/');
     List<FileSystemEntity> fileList = await dir.list().toList();
@@ -236,6 +265,19 @@ class _MyHomePageState extends State<MyHomePage> {
     Response res = await dio.post(url, data: formData);
 
     if (res.statusCode == 200) {
+      final file = File_table(
+          filename: res.data['filename'],
+          created_at: res.data['created_at'],
+          is_phising: res.data['phising_result']['is_phising'],
+          confidence: res.data['phising_result']['confidence'],
+          reasons: jsonEncode(res.data['phising_result']['reasons']),
+          Text: res.data['phising_result']['text'],
+          is_deep_voice: res.data['phising_result']['deep_voice_result']
+              ['is_deep_voice'],
+          deep_voice_confidence: res.data['phising_result']['deep_voice_result']
+              ['confidence']);
+      database.insert(file);
+
       print('[Main] data >> ${res.data}');
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -276,7 +318,8 @@ class _MyHomePageState extends State<MyHomePage> {
             bool autoSendSwitchValue =
                 prefs.getBool('autoSendSwitchValue') ?? true;
             if (autoSendSwitchValue) {
-              _uploadAudioFile();
+              // _uploadAudioFile();
+              _getDummisData();
             }
           }
           setState(() {
