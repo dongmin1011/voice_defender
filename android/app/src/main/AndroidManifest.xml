@@ -4,11 +4,15 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
-    
+    <uses-permission android:name="android.permission.INTERNET" />
+
+
    <application
-        android:label="후아유"
+        android:label="보이스 디펜더"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"
+        >
 
         <service
             android:name="com.ekaseti.flutter_background_service.BackgroundService"

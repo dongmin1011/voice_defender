@@ -247,60 +247,66 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     String? latestFilePath = fileList.first.path;
-    Dio dio = Dio(
-      // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
-      BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
-    );
+    try {
+      Dio dio = Dio(
+        // BaseOptions(baseUrl: dotenv.env['BASE_URL'] ?? 'http://localhost:8080'),
+        BaseOptions(baseUrl: 'http://222.105.252.28:8080'),
+      );
 
-    String url = '/api/ai/analysis';
-    String filename = latestFilePath.split('/').last;
+      String url = '/api/ai/analysis';
+      String filename = latestFilePath.split('/').last;
 
-    FormData formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        latestFilePath,
-        filename: filename,
-      ),
-    });
+      FormData formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          latestFilePath,
+          filename: filename,
+        ),
+      });
 
-    Response res = await dio.post(url, data: formData);
+      Response res = await dio.post(url, data: formData);
 
-    if (res.statusCode == 200) {
-      final file = File_table(
-          filename: res.data['filename'],
-          created_at: res.data['created_at'],
-          is_phising: res.data['phising_result']['is_phising'],
-          confidence: res.data['phising_result']['confidence'],
-          reasons: jsonEncode(res.data['phising_result']['reasons']),
-          Text: res.data['phising_result']['text'],
-          is_deep_voice: res.data['phising_result']['deep_voice_result']
-              ['is_deep_voice'],
-          deep_voice_confidence: res.data['phising_result']['deep_voice_result']
-              ['confidence']);
-      database.insert(file);
+      if (res.statusCode == 200) {
+        final file = File_table(
+            filename: res.data['filename'],
+            created_at: res.data['created_at'],
+            is_phising: res.data['phising_result']['is_phising'],
+            confidence: res.data['phising_result']['confidence'],
+            reasons: jsonEncode(res.data['phising_result']['reasons']),
+            Text: res.data['phising_result']['text'],
+            is_deep_voice: res.data['phising_result']['deep_voice_result']
+                ['is_deep_voice'],
+            deep_voice_confidence: res.data['phising_result']
+                ['deep_voice_result']['confidence']);
+        database.insert(file);
 
-      print('[Main] data >> ${res.data}');
+        print('[Main] data >> ${res.data}');
 
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      bool notificationSwitchValue =
-          prefs.getBool('notificationSwitchValue') ?? true;
+        bool notificationSwitchValue =
+            prefs.getBool('notificationSwitchValue') ?? true;
 
-      if (res.data['phising_result']['is_phising']) {
-        print('[Main] 보이스피싱 의심');
-        FlutterLocalNotification.showNotification(
-            '보이스피싱', '방금 통화는 보이스 피싱으로 의심됩니다.');
-      } else if (res.data['phising_result']['deep_voice_result']
-          ['is_deep_voice']) {
-        print('[Main] 딥보이스 탐지');
-        FlutterLocalNotification.showNotification(
-            '딥보이스', '방금 통화는 딥보이스가 탐지되었습니다.');
-      } else {
-        print('[Main] 정상통화');
-        if (!notificationSwitchValue) {
+        if (res.data['phising_result']['is_phising']) {
+          print('[Main] 보이스피싱 의심');
           FlutterLocalNotification.showNotification(
-              '보이스디펜더', '안심하세요. 아무것도 탐지되지 않았습니다.');
+              '방금 통화는 보이스 피싱으로 의심됩니다.', '앱을 실행해 상세정보를 확인해주세요.');
+        } else if (res.data['phising_result']['deep_voice_result']
+            ['is_deep_voice']) {
+          print('[Main] 딥보이스 탐지');
+          FlutterLocalNotification.showNotification(
+              '방금 통화는 딥보이스가 탐지되었습니다.', '앱을 실행해 상세정보를 확인해주세요.');
+        } else {
+          print('[Main] 정상통화');
+          if (!notificationSwitchValue) {
+            FlutterLocalNotification.showNotification(
+                '안심하세요. 아무것도 탐지되지 않았습니다.', '보이스 디펜더가 동작중입니다.');
+          }
         }
       }
+    } catch (e) {
+      FlutterLocalNotification.showNotification(
+          '서버가 응답하지 않습니다.', '이용에 불편을 드려 죄송합니다.');
+      throw e;
     }
   }
 
