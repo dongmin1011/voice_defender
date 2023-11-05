@@ -81,7 +81,23 @@ class ResultPage extends StatelessWidget {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(top: 20.0),
-                                  child: TextObject("딥보이스 위험도", fontsize: 20),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextObject("딥보이스 위험도", fontsize: 20),
+                                      TextObject(
+                                          ((response['phising_result'][
+                                                                  'deep_voice_result']
+                                                              ['confidence'] *
+                                                          100)
+                                                      .toInt())
+                                                  .toString() +
+                                              "%",
+                                          fontsize: 15,
+                                          fw: FontWeight.w400)
+                                    ],
+                                  ),
                                 ),
                                 Column(
                                   children: [
@@ -135,7 +151,22 @@ class ResultPage extends StatelessWidget {
                                       height: 1,
                                       color: Colors.grey[300]),
                                 ),
-                                TextObject("보이스피싱 위험도", fontsize: 20),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextObject("보이스피싱 위험도", fontsize: 20),
+                                    TextObject(
+                                        ((response['phising_result']
+                                                            ['confidence'] *
+                                                        100)
+                                                    .toInt())
+                                                .toString() +
+                                            "%",
+                                        fontsize: 15,
+                                        fw: FontWeight.w400)
+                                  ],
+                                ),
                                 Column(
                                   children: [
                                     Padding(
@@ -217,8 +248,23 @@ class ResultPage extends StatelessWidget {
                               );
                             }).toList(),
                           ))
-                        : SizedBox(),
-                  )
+                        : Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextObject("의심되는 단어가 없습니다.",
+                                fontsize: 15, fw: FontWeight.w400),
+                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                    child: Divider(
+                        thickness: 1, height: 1, color: Colors.grey[300]),
+                  ),
+                  TextObject("텍스트 분석 정보", fontsize: 20),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextObject(response['phising_result']['text'],
+                        fontsize: 15, fw: FontWeight.w400, center: false),
+                  ),
                 ],
               ),
             ),

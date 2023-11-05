@@ -25,8 +25,6 @@ class File_table {
   Map<String, dynamic> toMap() {
     final reasonsJson = jsonEncode(reasons);
     print(reasonsJson);
-    print(jsonDecode(reasonsJson));
-    print(jsonDecode(reasonsJson).runtimeType);
     return {
       'id': id,
       'filename': filename,
